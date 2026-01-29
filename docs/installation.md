@@ -1,70 +1,151 @@
-# EpiAgent - Claude Code 卫生统计工作流库 - 安装指南
+# EpiClaude - Claude Code 流行病学工作流库 - 安装指南
 
 > 此文档供 Claude Code 读取并自动执行安装
 
 ---
 
-## 安装目标
+## ⚠️ 重要：安装前检查
 
-将以下内容安装到用户的 Claude Code 环境：
+在安装前，你需要检查用户是否已有现有配置，并询问用户如何处理：
 
-1. **Skills** → `~/.claude/skills/`
-2. **MCP Servers** → `~/.claude.json`
+### 1. 检查现有 Skills
+
+检查以下路径是否存在：
+- Windows: `C:\Users\用户名\.claude\skills\`
+- macOS/Linux: `~/.claude/skills/`
+
+**如果存在同名 skill (如 `r-biostats`)，询问用户：**
+
+```
+📋 检测到你已有以下 Skills:
+   - r-biostats (已存在)
+   
+请选择处理方式：
+1️⃣ 替换 - 用 EpiClaude 的版本覆盖现有 skill
+2️⃣ 保留 - 保持你现有的 skill 不变
+3️⃣ 合并 - 将 EpiClaude 的内容智能合并到现有 skill
+
+请输入 1/2/3:
+```
+
+### 2. 检查现有 CLAUDE.md
+
+检查以下路径是否存在：
+- 全局: `~/.claude/CLAUDE.md`
+- 项目: `当前目录/CLAUDE.md`
+
+**如果存在，询问用户：**
+
+```
+📋 检测到你已有 CLAUDE.md 文件
+
+请选择处理方式：
+1️⃣ 替换 - 用 EpiClaude 的版本覆盖
+2️⃣ 保留 - 保持你现有的不变
+3️⃣ 合并 - 将 EpiClaude 的规范追加到现有文件末尾
+4️⃣ 智能合并 - 让我分析两个文件并智能整合 (推荐)
+
+请输入 1/2/3/4:
+```
+
+### 3. 检查现有 Agents
+
+检查 `~/.claude/agents/` 是否存在同名 agent
 
 ---
 
-## 自动安装步骤
+## 合并策略
+
+### Skills 合并
+
+如果用户选择"合并"，执行以下操作：
+
+1. 读取用户现有的 `SKILL.md`
+2. 读取 EpiClaude 的 `SKILL.md`
+3. 保留用户的自定义内容
+4. 添加 EpiClaude 的新功能和模板
+5. 去重并保持结构清晰
+
+### CLAUDE.md 智能合并
+
+如果用户选择"智能合并"：
+
+1. 分析两个文件的结构
+2. 合并禁止规则 (去重)
+3. 合并必须执行规则 (去重)
+4. 保留用户的项目特定配置
+5. 添加 EpiClaude 的工作流日志规范
+6. 输出合并后的文件供用户确认
+
+---
+
+## 安装步骤
 
 ### 步骤 1: 克隆仓库
 
 ```bash
-git clone https://github.com/KangWang42/EpiAgent.git /tmp/epiagent
+git clone https://github.com/KangWang42/EpiClaude.git /tmp/epiclaude
 ```
 
-如果 git 不可用，跳过此步骤，直接从源仓库读取文件。
+如果 git 不可用，直接从 GitHub 读取文件内容。
 
 ---
 
-### 步骤 2: 创建 Skills 目录
+### 步骤 2: 检查并处理现有配置
 
-**Windows:**
-```powershell
-$skillsDir = "$env:USERPROFILE\.claude\skills"
-if (!(Test-Path $skillsDir)) { 
-    New-Item -ItemType Directory -Path $skillsDir -Force 
-}
-```
-
-**macOS/Linux:**
-```bash
-mkdir -p ~/.claude/skills
-```
+按上述检查流程询问用户处理方式。
 
 ---
 
-### 步骤 3: 复制 Skills
+### 步骤 3: 安装 Skills
 
-将以下技能目录复制到 skills 目录：
+根据用户选择执行：
 
-- `skills/r-biostats/` → `~/.claude/skills/r-biostats/`
-- `skills/project-init/` → `~/.claude/skills/project-init/`
-- `skills/paper-writing/` → `~/.claude/skills/paper-writing/`
-
-**Windows:**
-```powershell
-Copy-Item -Recurse -Force "/tmp/claudecode4epi/skills/*" "$env:USERPROFILE\.claude\skills\"
+**替换模式:**
+```
+覆盖 ~/.claude/skills/r-biostats/
+覆盖 ~/.claude/skills/project-init/
+覆盖 ~/.claude/skills/paper-writing/
 ```
 
-**macOS/Linux:**
-```bash
-cp -r /tmp/claudecode4epi/skills/* ~/.claude/skills/
+**保留模式:**
+```
+跳过已存在的 skill
+只安装不存在的 skill
+```
+
+**合并模式:**
+```
+读取现有 SKILL.md
+合并 EpiClaude 内容
+写入合并后的文件
 ```
 
 ---
 
-### 步骤 4: 配置 MCP Servers
+### 步骤 4: 安装 CLAUDE.md
 
-读取或创建 `~/.claude.json`，添加以下 MCP 配置：
+根据用户选择执行相应操作。
+
+---
+
+### 步骤 5: 安装 Agents (可选)
+
+复制 agents 到 `~/.claude/agents/`:
+- r-analyst.md
+- paper-writer.md
+- code-reviewer.md
+- lit-helper.md
+
+---
+
+### 步骤 6: 配置 MCP Servers
+
+检查 `~/.claude.json` 是否存在：
+
+**如果不存在:** 创建新文件
+
+**如果存在:** 合并 mcpServers 配置 (保留用户现有的，添加新的)
 
 **Windows 配置:**
 ```json
@@ -77,10 +158,6 @@ cp -r /tmp/claudecode4epi/skills/* ~/.claude/skills/
     "memory": {
       "command": "cmd",
       "args": ["/c", "npx", "-y", "@anthropic/mcp-memory"]
-    },
-    "sequential-thinking": {
-      "command": "cmd",
-      "args": ["/c", "npx", "-y", "@anthropic/mcp-sequential-thinking"]
     }
   }
 }
@@ -97,10 +174,6 @@ cp -r /tmp/claudecode4epi/skills/* ~/.claude/skills/
     "memory": {
       "command": "npx",
       "args": ["-y", "@anthropic/mcp-memory"]
-    },
-    "sequential-thinking": {
-      "command": "npx", 
-      "args": ["-y", "@anthropic/mcp-sequential-thinking"]
     }
   }
 }
@@ -108,22 +181,23 @@ cp -r /tmp/claudecode4epi/skills/* ~/.claude/skills/
 
 ---
 
-### 步骤 5: 验证安装
+### 步骤 7: 验证安装
 
-告知用户：
+显示安装摘要：
 
 ```
-✅ 安装完成！
+✅ EpiClaude 安装完成！
 
-已安装的 Skills:
-- r-biostats (R 生物统计分析)
-- project-init (项目初始化)
-- paper-writing (论文生成)
+📦 Skills:
+   - r-biostats: ✅ 已安装 / 🔄 已合并 / ⏭️ 已跳过
+   - project-init: ✅ 已安装
+   - paper-writing: ✅ 已安装
 
-已配置的 MCP Servers:
-- filesystem (文件读写)
-- memory (会话记忆)
-- sequential-thinking (分步推理)
+📋 CLAUDE.md: ✅ 已安装 / 🔄 已合并
+
+🤖 Agents: ✅ 4 个已安装
+
+🔌 MCP Servers: ✅ 已配置
 
 ⚠️ 请重启 Claude Code 使配置生效！
 ```
@@ -132,10 +206,19 @@ cp -r /tmp/claudecode4epi/skills/* ~/.claude/skills/
 
 ## 项目级配置 (可选)
 
-如果用户有特定项目，还可以：
+询问用户是否需要为当前项目配置：
 
+```
+是否为当前项目安装配置？
+1️⃣ 是 - 复制 CLAUDE.md 和 templates 到当前项目
+2️⃣ 否 - 只保留全局配置
+```
+
+如果选择"是"：
 1. 复制 `CLAUDE.md` 到项目根目录
-2. 复制 `workflows/` 到项目的 `.agent/workflows/`
+2. 复制 `templates/SESSION_LOG.md` 到项目根目录
+3. 复制 `templates/DECISIONS.md` 到项目根目录
+4. 创建标准七层目录结构 (如果不存在)
 
 ---
 
@@ -144,5 +227,5 @@ cp -r /tmp/claudecode4epi/skills/* ~/.claude/skills/
 安装完成后删除临时文件：
 
 ```bash
-rm -rf /tmp/claudecode4epi
+rm -rf /tmp/epiclaude
 ```
