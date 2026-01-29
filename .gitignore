@@ -1,0 +1,39 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# R
+.Rhistory
+.RData
+.Rproj.user/
+*.Rproj
+
+# Data files (prevent accidental upload)
+*.xlsx
+*.xls
+*.csv
+*.sav
+*.dta
+*.sas7bdat
+
+# System
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temp
+*.tmp
+*.temp
+*.log
+
+# Large files
+*.RData
+*.rds
