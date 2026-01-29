@@ -163,6 +163,33 @@ Claude: 📚 随机效应模型
 
 ---
 
+## 🔗 更多资源与推荐 Skills
+
+### 官方与社区资源
+- [Claude Official Skills](https://github.com/anthropics/skills) - Anthropic 官方技能库
+- [Awesome Claude](https://github.com/anthropics/anthropic-cookbook) - 官方 Cookbook 和示例
+
+### ✨ 特别推荐: humanizer-zh
+
+**"让你的论文告朔'AI 味'，回归人类的自然表达"**
+
+本库 `skills/` 已包含 `humanizer-zh` 技能。
+
+**功能**:
+基于维基百科 "AI 写作特征" 综合指南，自动检测并修复：
+- ❌ 夸大的象征意义 ("作为...的证明")
+- ❌ 宣传性语言 ("无缝、直观、强大")
+- ❌ 浅薄的 "-ing" 分析
+- ❌ 模糊的归因 ("专家认为")
+- ❌ 过度使用的 AI 词汇 ("格局", "织锦", "至关重要")
+
+**使用方法**:
+```bash
+/humanizer-zh "你的论文段落..."
+```
+
+---
+
 ## 🤝 贡献
 
 欢迎提交 Issue 和 Pull Request！
