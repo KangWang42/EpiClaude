@@ -32,7 +32,7 @@
 
 ```
 请阅读安装指南并帮我完成全部配置：
-https://raw.githubusercontent.com/KangWang42/EpiClaude/main/docs/installation.md
+https://raw.githubusercontent.com/KangWang42/EpiClaude/master/docs/installation.md
 ```
 
 ---
