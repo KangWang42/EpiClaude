@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(curl:*)",
+      "Bash(git clone:*)",
+      "Bash(if [ -d \"$HOME/.claude/skills\" ])",
+      "Bash(then ls \"$HOME/.claude/skills\")",
+      "Bash(else echo \"目录不存在\")",
+      "Bash(fi:*)",
+      "Bash(if [ -f \"$HOME/.claude/CLAUDE.md\" ])",
+      "Bash(then echo \"全局CLAUDE.md存在\")",
+      "Bash(else echo \"全局CLAUDE.md不存在\")",
+      "Bash(if [ -f \"./CLAUDE.md\" ])",
+      "Bash(then echo \"项目CLAUDE.md存在\")",
+      "Bash(else echo \"项目CLAUDE.md不存在\")",
+      "Bash(if [ -d \"$HOME/.claude/agents\" ])",
+      "Bash(then ls \"$HOME/.claude/agents\")",
+      "Bash(else echo \"agents目录不存在\")"
+    ]
+  }
+}

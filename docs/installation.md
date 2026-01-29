@@ -81,13 +81,26 @@
 
 ## 安装步骤
 
-### 步骤 1: 克隆仓库
+### ⚠️ Windows 用户注意
 
-```bash
-git clone https://github.com/KangWang42/EpiClaude.git /tmp/epiclaude
+在 Windows 上请使用 **PowerShell** 而不是 Git Bash，因为 Git Bash 存在路径和编码兼容性问题。
+
+**Windows 路径:**
+- Skills 目录: `C:\Users\你的用户名\.claude\skills\`
+- CLAUDE.md: `C:\Users\你的用户名\.claude\CLAUDE.md`
+- Agents 目录: `C:\Users\你的用户名\.claude\agents\`
+
+### 步骤 1: 下载仓库
+
+**方法 A: 使用 Git (推荐)**
+```powershell
+git clone https://github.com/KangWang42/EpiClaude.git $env:TEMP\epiclaude
 ```
 
-如果 git 不可用，直接从 GitHub 读取文件内容。
+**方法 B: 手动下载**
+1. 打开 https://github.com/KangWang42/EpiClaude
+2. 点击 Code → Download ZIP
+3. 解压到任意位置
 
 ---
 
