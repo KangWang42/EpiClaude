@@ -31,8 +31,12 @@
 复制粘贴到 Claude Code，让 AI 帮你完成配置：
 
 ```
-请阅读安装指南并帮我完成全部配置：
-https://raw.githubusercontent.com/KangWang42/EpiClaude/master/docs/installation.md
+```
+请检查我的配置：
+1. 如果已安装且版本较新 -> 跳过
+2. 如果未安装或版本较旧 -> 帮我安装/更新
+3. 安装源: https://raw.githubusercontent.com/KangWang42/EpiClaude/master/docs/installation.md
+```
 ```
 
 ---

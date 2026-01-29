@@ -7,28 +7,27 @@
 #' @param name 项目名称 (英文 snake_case)
 #' @param type 研究类型: 1=队列, 2=病例对照, 3=横断面, 4=干预
 init_project <- function(name, type = 1) {
-  
   study_types <- c(
     "队列研究 (Cohort)",
     "病例对照 (Case-Control)",
     "横断面 (Cross-Sectional)",
     "干预研究 (Intervention)"
   )
-  
+
   dirs <- c(
     "01_data", "02_code", "03_tables", "04_figures",
     "05_reports", "06_results", "07_paper", "09_backup"
   )
-  
+
   # 创建目录
   dir.create(name, showWarnings = FALSE)
   for (d in dirs) {
     dir.create(file.path(name, d), showWarnings = FALSE)
   }
-  
+
   date <- format(Sys.Date(), "%Y-%m-%d")
   study <- study_types[type]
-  
+
   # CLAUDE.md
   writeLines(c(
     "---",
@@ -43,7 +42,7 @@ init_project <- function(name, type = 1) {
     "",
     "继承全局规则。"
   ), file.path(name, "CLAUDE.md"))
-  
+
   # README.md
   writeLines(c(
     sprintf("# %s", name),
@@ -58,11 +57,13 @@ init_project <- function(name, type = 1) {
     "4. 敏感性分析",
     "",
     "## 目录",
-    "- `01_data/`: 原始数据 (只读)",
-    "- `02_code/`: 分析代码",
-    "- `07_paper/`: 论文终稿"
+    "- `01_data/`: 原始数据 (🔒 只读)",
+    "- `02_code/`: 分析代码 (🚫 无数据)",
+    "- `04_figures/`: 图库 (PNG/PDF)",
+    "- `07_paper/`: 论文文稿 (📄 无图片)",
+    "- `09_backup/`: 回收站"
   ), file.path(name, "README.md"))
-  
+
   # 01_data/README.md
   writeLines(c(
     "# 数据说明",
@@ -74,7 +75,7 @@ init_project <- function(name, type = 1) {
     "| 变量名 | 类型 | 说明 |",
     "|--------|------|------|"
   ), file.path(name, "01_data", "README.md"))
-  
+
   # 02_code/01_data_cleaning.R
   writeLines(c(
     "# ================================================",
@@ -99,7 +100,7 @@ init_project <- function(name, type = 1) {
     "# 保存 ----",
     "# save(data_neat, file = \"06_results/00_data_neat.RData\")"
   ), file.path(name, "02_code", "01_data_cleaning.R"))
-  
+
   # 07_paper/0_result_summaries.md
   writeLines(c(
     sprintf("# %s 结果汇总", name),
@@ -112,7 +113,7 @@ init_project <- function(name, type = 1) {
     "## 主分析",
     "<!-- 待更新 -->"
   ), file.path(name, "07_paper", "0_result_summaries.md"))
-  
+
   # SESSION_LOG.md (会话日志)
   writeLines(c(
     "# 📋 会话日志 (Session Log)",
@@ -131,7 +132,7 @@ init_project <- function(name, type = 1) {
     "| ---- | ---- | ---- | ---- |",
     "| v1 | _待记录_ | | 基准 |"
   ), file.path(name, "SESSION_LOG.md"))
-  
+
   # DECISIONS.md (决策日志)
   writeLines(c(
     "# 🔄 决策日志 (Decisions Log)",
@@ -155,7 +156,7 @@ init_project <- function(name, type = 1) {
     "",
     "**决定**: _待填写_"
   ), file.path(name, "DECISIONS.md"))
-  
+
   # .gitignore
   writeLines(c(
     "# 数据",
@@ -173,7 +174,7 @@ init_project <- function(name, type = 1) {
     ".DS_Store",
     "Thumbs.db"
   ), file.path(name, ".gitignore"))
-  
+
   cat(sprintf("\n✅ 项目 [%s] 创建成功!\n", name))
   cat(sprintf("   类型: %s\n", study))
   cat(sprintf("   路径: %s\n\n", normalizePath(name)))
@@ -181,6 +182,6 @@ init_project <- function(name, type = 1) {
   cat("  1. 放入原始数据 → 01_data/\n")
   cat("  2. 填写数据说明 → 01_data/README.md\n")
   cat("  3. 开始清洗 → 02_code/01_data_cleaning.R\n")
-  
+
   invisible(name)
 }
