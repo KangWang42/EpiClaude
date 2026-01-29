@@ -7,8 +7,6 @@
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Ready-purple)](https://docs.anthropic.com/en/docs/claude-code)
 [![中文](https://img.shields.io/badge/语言-中文-red)](README.md)
 
-![EpiClaude Banner](docs/images/hero_banner.png)
-
 ---
 
 ## ✨ 一句话介绍
