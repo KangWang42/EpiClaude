@@ -26,20 +26,27 @@
 
 ---
 
-## 🚀 30秒安装
+## 🚀 30 秒安装 (首次使用)
 
 复制粘贴到 Claude Code，让 AI 帮你完成配置：
 
 ```
-```
-请检查我的配置：
-1. 如果已安装且版本较新 -> 跳过
-2. 如果未安装或版本较旧 -> 帮我安装/更新
-3. 安装源: https://raw.githubusercontent.com/KangWang42/EpiClaude/master/docs/installation.md
-```
+请阅读安装指南并帮我完成全部配置：
+https://raw.githubusercontent.com/KangWang42/EpiClaude/master/docs/installation.md
 ```
 
 ---
+
+## 🔄 检查更新 (老用户)
+
+如果通过 `installation.md` 安装过，可以用此指令检查更新：
+
+```
+请检查我的 EpiClaude 配置：
+1. 检查已安装的 skills/agents 
+2. 如果有新版本，帮我更新
+3. 安装源: https://raw.githubusercontent.com/KangWang42/EpiClaude/master/docs/installation.md
+```
 
 ## 💡 能做什么？
 
