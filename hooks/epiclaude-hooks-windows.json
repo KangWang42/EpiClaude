@@ -6,7 +6,7 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "powershell -NoProfile -Command \"Write-Host '⚠️ [EpiClaude] 记得更新 SESSION_LOG.md!'\""
+                        "command": "powershell -NoProfile -Command \"Write-Host '⚠️ [EpiClaude] 检查: SESSION_LOG.md + 0_result_summaries.md 是否需要更新?'\""
                     }
                 ]
             }
@@ -21,6 +21,12 @@
                     }
                 ]
             }
+        ]
+    },
+    "permissions": {
+        "allow": [
+            "Bash(Rscript:*)",
+            "Bash(R:*)"
         ]
     }
 }

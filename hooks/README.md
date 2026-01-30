@@ -6,10 +6,10 @@
 
 | Hook 类型 | 触发时机 | 功能 |
 |-----------|----------|------|
-| **PostToolUse** | 文件写入后 | 提醒更新 SESSION_LOG.md |
+| **PostToolUse** | 文件写入后 | 提醒检查 SESSION_LOG.md 和 0_result_summaries.md |
 | **PreToolUse** | 文件写入前 | 检查 02_code 下文件命名规范 |
 
-## 配置代码
+## Windows 配置
 
 ```json
 {
@@ -20,7 +20,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -NoProfile -Command \"Write-Host '⚠️ [EpiClaude] 记得更新 SESSION_LOG.md!'\""
+            "command": "powershell -NoProfile -Command \"Write-Host '⚠️ [EpiClaude] 检查: SESSION_LOG.md + 0_result_summaries.md 是否需要更新?'\""
           }
         ]
       }
@@ -36,11 +36,18 @@
         ]
       }
     ]
+  },
+  "permissions": {
+    "defaultMode": "dontAsk",
+    "allow": [
+      "Bash(Rscript:*)",
+      "Bash(R:*)"
+    ]
   }
 }
 ```
 
-## macOS/Linux 版本
+## macOS/Linux 配置
 
 ```json
 {
@@ -51,11 +58,23 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo '⚠️ [EpiClaude] 记得更新 SESSION_LOG.md!'"
+            "command": "echo '⚠️ [EpiClaude] 检查: SESSION_LOG.md + 0_result_summaries.md 是否需要更新?'"
           }
         ]
       }
     ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(Rscript:*)",
+      "Bash(R:*)"
+    ]
   }
 }
 ```
+
+## 规则说明
+
+1. **SESSION_LOG.md** - 每次操作后记录
+2. **0_result_summaries.md** - 结果变化时同步更新，只保留最终方案
+3. **Rscript 权限** - 允许 AI 自动运行 R 代码验证
