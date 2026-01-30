@@ -26,26 +26,43 @@
 
 ---
 
-## 🚀 30 秒安装 (首次使用)
+## 🚀 30 秒安装
 
-复制粘贴到 Claude Code，让 AI 帮你完成配置：
+### 方式 1: 一键安装 (推荐)
+
+复制粘贴到 Claude Code：
 
 ```
-请阅读安装指南并帮我完成全部配置：
+请阅读安装指南并帮我完成全部配置 (包括 skills、agents、hooks)：
 https://raw.githubusercontent.com/KangWang42/EpiClaude/master/docs/installation.md
 ```
+
+### 方式 2: R 脚本安装
+
+在 RStudio 中运行：
+
+```r
+source("https://raw.githubusercontent.com/KangWang42/EpiClaude/master/scripts/install.R")
+```
+
+---
+
+## 📦 包含内容
+
+| 组件 | 功能 | 数量 |
+|------|------|------|
+| 🎨 **Skills** | r-biostats, paper-writing, project-init, humanizer-zh | 4 |
+| 🤖 **Agents** | R 分析师, 论文写手, 代码审查, 文献助手 | 4 |
+| 🪝 **Hooks** | 命名规范检查, 日志更新提醒 | 2 |
+| 📋 **CLAUDE.md** | 流行病学 R 编程规范 | 1 |
 
 ---
 
 ## 🔄 检查更新 (老用户)
 
-如果通过 `installation.md` 安装过，可以用此指令检查更新：
-
 ```
-请检查我的 EpiClaude 配置：
-1. 检查已安装的 skills/agents 
-2. 如果有新版本，帮我更新
-3. 安装源: https://raw.githubusercontent.com/KangWang42/EpiClaude/master/docs/installation.md
+请检查我的 EpiClaude 配置并更新到最新版本：
+https://raw.githubusercontent.com/KangWang42/EpiClaude/master/docs/installation.md
 ```
 
 ## 💡 能做什么？

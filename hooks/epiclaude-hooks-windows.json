@@ -1,0 +1,26 @@
+{
+    "hooks": {
+        "PostToolUse": [
+            {
+                "matcher": "Write|Edit",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "powershell -NoProfile -Command \"Write-Host '⚠️ [EpiClaude] 记得更新 SESSION_LOG.md!'\""
+                    }
+                ]
+            }
+        ],
+        "PreToolUse": [
+            {
+                "matcher": "Write",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "powershell -NoProfile -Command \"$path = $env:CLAUDE_TOOL_INPUT_PATH; if ($path -match '02_code' -and $path -notmatch '^\\d{2}_') { Write-Host '❌ [EpiClaude] R脚本必须用 NN_xxx.R 格式命名!' -ForegroundColor Red; exit 1 }\""
+                    }
+                ]
+            }
+        ]
+    }
+}

@@ -78,15 +78,75 @@ install_epiclaude <- function() {
     }
   }
   
+  # 安装 CLAUDE.md
+  claude_md_src <- file.path(source_dir, "CLAUDE.md")
+  claude_md_dest <- file.path(claude_dir, "CLAUDE.md")
+  if (file.exists(claude_md_dest)) {
+    message("⚠️  CLAUDE.md 已存在 (跳过)")
+  } else {
+    file.copy(claude_md_src, claude_md_dest)
+    message("✅ CLAUDE.md 已安装")
+  }
+  
   # 清理
   unlink(zip_file)
   unlink(temp_dir, recursive = TRUE)
   
-  message("\n🎉 安装完成！请重启 Claude Code。")
+  message("\n🎉 安装完成！")
+  message("📌 Hooks 需要手动配置，请查看: hooks/README.md")
+  message("🔄 请重启 Claude Code 使配置生效。")
 }
 
 # 运行安装
 install_epiclaude()
+```
+
+---
+
+## 🪝 Step 2: 安装 Hooks (可选但推荐)
+
+Hooks 可以自动检查命名规范和提醒更新日志。
+
+### Windows 用户
+
+将以下内容**合并**到 `~/.claude/settings.json` 的根对象中：
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -Command \"Write-Host '⚠️ [EpiClaude] 记得更新 SESSION_LOG.md!'\""
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+### macOS/Linux 用户
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '⚠️ [EpiClaude] 记得更新 SESSION_LOG.md!'"
+          }
+        ]
+      }
+    ]
+  }
+}
 ```
 
 ---
