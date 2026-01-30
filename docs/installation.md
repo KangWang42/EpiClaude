@@ -187,3 +187,58 @@ Remove-Item $ZipPath -Force
 
 Write-Host "🎉 安装完成！" -ForegroundColor Cyan
 ```
+
+---
+
+## 🔌 Step 3: 推荐 MCP Servers (可选)
+
+将以下内容**合并**到 `~/.claude/settings.json` 的 `mcpServers` 字段中：
+
+```json
+{
+  "mcpServers": {
+    "fetch": {
+      "command": "npx",
+      "args": ["-y", "@anthropic-ai/mcp-server-fetch"],
+      "description": "网页内容抓取"
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@anthropic-ai/mcp-server-filesystem", "你的工作目录"],
+      "description": "文件系统访问"
+    },
+    "memory": {
+      "command": "npx",
+      "args": ["-y", "@anthropic-ai/mcp-server-memory"],
+      "description": "持久化记忆存储"
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@anthropic-ai/mcp-server-sequential-thinking"],
+      "description": "复杂推理增强"
+    },
+    "markitdown": {
+      "command": "docker",
+      "args": ["run", "--rm", "-i", "markitdown-mcp:latest"],
+      "description": "PDF/Word/Excel 转 Markdown (需安装 Docker)"
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"],
+      "description": "获取最新版本的文档和代码示例"
+    }
+  }
+}
+```
+
+### MCP 功能说明
+
+| 服务器 | 功能 | 用途 |
+|--------|------|------|
+| `fetch` | 网页抓取 | 读取在线文档 |
+| `filesystem` | 文件访问 | 读写本地文件 |
+| `memory` | 持久记忆 | 跨会话保存信息 |
+| `sequential-thinking` | 深度推理 | 复杂分析任务 |
+| `markitdown` | 文档转换 | 读取 PDF/Word 提取内容 |
+| `context7` | 最新文档 | 获取 R 包最新用法 |
+
