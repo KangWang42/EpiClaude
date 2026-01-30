@@ -53,13 +53,22 @@ applyTo: '**/*.R, **/*.r, **/*.Rmd, **/*.qmd'
 8. 📂 **检查文件位置**: 确保所有生成的文件都在正确目录 (不在根目录)
 9. 🗑️ **移动残余文件**: 发现根目录有非标准文件，移动到 `09_backup/`
 
+> ⚠️ **注意**: 以下是 **R 代码**，需在 R/RStudio 中运行，不是 Shell 命令！
+
 ```r
-# 回环验证脚本 (每次操作后运行)
+# 回环验证脚本 (在 R 中运行，非 Shell!)
+# 确保 09_backup 目录存在
+if (!dir.exists("09_backup")) dir.create("09_backup")
+
+# 检查并移动临时文件
 temp_files <- list.files(".", pattern = "\\.(txt|tmp|log)$", full.names = TRUE)
 if (length(temp_files) > 0) {
   message("⚠️ 检测到临时文件: ", paste(temp_files, collapse = ", "))
-  file.rename(temp_files, file.path("09_backup", basename(temp_files)))
+  file.copy(temp_files, file.path("09_backup", basename(temp_files)))
+  file.remove(temp_files)
   message("✅ 已移动到 09_backup/")
+} else {
+  message("✅ 根目录干净，无临时文件")
 }
 ```
 
