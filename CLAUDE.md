@@ -98,3 +98,22 @@ ggsave("04_figures/Fig1.pdf", p, width=8, height=6, device=cairo_pdf)
 > 1. 📁 R 脚本必须放 `02_code/NN_xxx.R`
 > 2. 📝 操作后必须更新 `SESSION_LOG.md`
 > 3. 🧹 根目录不能有临时文件
+
+---
+
+## 🛠️ 可用技能 (自动调用)
+
+> **⚠️ 执行以下任务时，必须先读取对应 SKILL.md！**
+
+| 触发词 | 技能 | 说明 |
+|--------|------|------|
+| "创建项目"/"初始化" | `/project-init` | 创建标准七层目录 |
+| "写论文"/"生成论文" | `/paper-writing` | 生成 6000+ 字完整论文 |
+| R 统计分析/回归/生存 | `/r-biostats` | 核心统计分析规范 |
+| "去AI味"/"润色" | `/humanizer-zh` | 去除 AI 生成痕迹 |
+
+**使用方法:**
+1. 识别用户需求匹配上述触发词
+2. 读取对应 skill 的 SKILL.md
+3. 按 SKILL.md 中的流程执行
+
