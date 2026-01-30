@@ -15,7 +15,7 @@ init_project <- function(name, type = 1) {
   )
 
   dirs <- c(
-    "01_data", "02_code", "03_tables", "04_figures",
+    "01_data", "01_data/rawdata", "02_code", "03_tables", "04_figures",
     "05_reports", "06_results", "07_paper", "09_backup"
   )
 

@@ -27,7 +27,7 @@ applyTo: '**/*.R, **/*.r, **/*.Rmd, **/*.qmd'
 | `for` 循环 | 低效 | `purrr::map_*()` |
 | 绝对路径 | 不可复现 | `"01_data/file.csv"` |
 | 手动配色 | 不专业 | `ggsci::scale_fill_lancet()` |
-| 修改 `01_data/` | 破坏原始数据 | 输出到其他目录 |
+| 修改 `01_data/rawdata/` | 破坏原始数据 | 清洗后存到 `01_data/` 根目录 |
 
 ---
 
@@ -107,7 +107,9 @@ if (length(temp_files) > 0) {
 ├── CLAUDE.md           # 本文件
 ├── SESSION_LOG.md      # 会话日志
 ├── DECISIONS.md        # 决策日志
-├── 01_data/            # 原始数据 (🔒 只读)
+├── 01_data/            # 数据目录
+│   ├── rawdata/        # 🔒 原始数据 (只读!)
+│   └── *.RData         # 清洗后数据 (可修改)
 ├── 02_code/            # R 脚本 (禁止放数据)
 ├── 03_tables/          # 生成的表格
 ├── 04_figures/         # 生成的图片/PDF (图库)
@@ -119,6 +121,8 @@ if (length(temp_files) > 0) {
 
 ### 📂 关键文件夹法则
 
+- **01_data/rawdata**: **🔒 只读**。原始数据文件，禁止修改/重命名。
+- **01_data**: 可存放清洗后的数据 (如 `data_neat.RData`)。
 - **04_figures**: **唯一图库**。论文插图必须引用此目录，禁止复制到 07_paper。
 - **07_paper**: **仅文稿**。只存放 .docx/.md 和投稿信。
 - **09_backup**: **垃圾站**。所有被淘汰的、乱七八糟的文件，cleanup 时会被移到这里。
