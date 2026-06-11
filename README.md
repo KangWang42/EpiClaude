@@ -34,12 +34,12 @@ skills/            技能集（按需加载，渐进披露）
 
 ```bash
 # Windows
-git clone git@github.com:KangWang42/epiclaude.git "%USERPROFILE%\.claude-epiclaude"
+git clone git@github.com:KangWang42/EpiClaude.git "%USERPROFILE%\.claude-epiclaude"
 copy "%USERPROFILE%\.claude-epiclaude\CLAUDE.md" "%USERPROFILE%\.claude\CLAUDE.md"
 xcopy /E /I "%USERPROFILE%\.claude-epiclaude\skills" "%USERPROFILE%\.claude\skills"
 
 # macOS / Linux
-git clone git@github.com:KangWang42/epiclaude.git ~/.claude-epiclaude
+git clone git@github.com:KangWang42/EpiClaude.git ~/.claude-epiclaude
 cp ~/.claude-epiclaude/CLAUDE.md ~/.claude/CLAUDE.md
 cp -r ~/.claude-epiclaude/skills ~/.claude/skills
 ```
