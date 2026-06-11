@@ -1,0 +1,18 @@
+# 白名单模式：默认忽略根目录下一切，仅显式放行公开内容。
+# 本目录含凭据 / 会话历史 / 缓存等敏感文件，严禁改成黑名单模式。
+/*
+!/.gitignore
+!/CLAUDE.md
+!/README.md
+!/skills/
+
+# skills 内排除：绑定私有数据项目的 skill 不公开
+/skills/python-ecg-analysis/
+
+# 通用排除
+__pycache__/
+*.pyc
+Thumbs.db
+.DS_Store
+~$*
+*.zip

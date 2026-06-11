@@ -1,0 +1,438 @@
+---
+name: r-biostats
+description: |
+  R 语言流行病学与生物统计分析执行层。专为医学研究生、临床数据分析、真实世界数据(RWD)研究、统计咨询设计。
+  触发场景：(1) 用户进行任何 R 统计分析；(2) 需要描述统计、回归、生存分析、中介效应、Meta 分析；(3) 需要数据清洗或可视化；(4) R 代码错误调试；(5) 生成出版级或咨询级图表表格。
+  上游依赖：开工前先对齐 biostat-principles；交付给客户前先过 consulting-delivery。
+---
+
+# R 流行病学与生物统计执行 skill
+
+> **上游原则**：本 skill 是执行层，所有行为受 `biostat-principles` 六原则约束。冲突时原则优先。
+> **核心工作模式**：`PLAN → CODE → RUN → VERIFY → DOC` 五阶状态机，每阶必须有显式验证后才能进入下一阶。
+
+---
+
+## 一、五阶状态机（强制）
+
+### 状态图
+
+```
+[用户请求]
+    ↓
+[PLAN]   列出口径、输入输出、分析方法、验证标准     ←─┐ 不通过回到此处
+    ↓ 用户确认或 trivial 豁免                          │
+[CODE]   编号命名、单一职责、最小实现                  │
+    ↓                                                  │
+[RUN]    Rscript 实际执行，不跳过                      │
+    ↓ 报错 → 修 → 重跑（最多 2 次）──────────────────┘
+    ↓ 仍失败 → 停下来汇报
+[VERIFY] 检查输出文件、数字范围、与预期一致
+    ↓ 不通过回到 CODE                                  
+    ↓                                                  
+[DOC]    更新 session_log / decisions / result_summaries
+    ↓
+[完成]
+```
+
+### 每一阶的退出条件
+
+| 阶段 | 不允许进入下一阶的情况 |
+|------|---------------------|
+| PLAN | 口径有歧义、输入路径不明、没写验证标准 |
+| CODE | 脚本超过 300 行但没拆分、用了 for 循环/绝对路径/print 调试、没编号命名 |
+| RUN | 没真跑过、有 warning 没处理、报错被 `tryCatch` 吞掉 |
+| VERIFY | 样本量与预期不符、数字明显异常（NA 爆表、HR=Inf）、图表留白/乱码/空白页 |
+| DOC | session_log 没更新、结果变了但 0_result_summaries.md 没改 |
+
+### 失败回退规则
+
+- RUN 报错连续 2 次修不好 → 停下来汇报用户，不要瞎试第 3 次
+- VERIFY 不过 → 必须回到 CODE，不能"大致对就行"
+- 用户打断说"不对" → 立即回到 PLAN，不要在原路径上继续改
+
+---
+
+## 二、PLAN 阶段模板
+
+**每次分析开头必须输出此块**（trivial 任务可压缩为一行）：
+
+```
+【口径】
+  - 研究对象：XX 人群 (N=?)
+  - 暴露/干预：XX
+  - 结局/终点：XX
+  - 协变量：X1, X2, ...
+  - 主分析方法：XX 模型
+  - 敏感性分析：XX
+
+【输入】
+  - 数据：01_data/rawdata/xxx.csv（或上游脚本产物 06_results/xxx.xlsx）
+  - 依赖：02_code/NN_前置脚本.R
+
+【输出】
+  - 脚本：02_code/NN_本次任务.R
+  - 表：03_tables/TableN_xxx.xlsx（sheet: ...；路径经 config.R 的 table_path() 取）
+  - 图：04_figures/FigN_xxx.pdf + .png（路径经 fig_path() 取）
+  - 中间：06_results/xxx.xlsx（表格化；仅模型等非表格对象用 .rds）
+
+【验证】
+  - 样本量 = 基线表 N
+  - 主效应值在 [合理范围]
+  - PH 假设 / 线性假设 / 收敛性如何判定
+```
+
+**口径有 ≥1 项填不出 → 先问用户，不要开工。**
+
+---
+
+## 三、硬禁止 / 必须（CRITICAL）
+
+### 禁止
+
+| 违禁 | 替代 |
+|------|------|
+| `print()`, `cat()` 调试 | 直接返回对象，RStudio 里跑分块 |
+| `for (i in 1:n)` 循环 | `purrr::map_*()` / `across()` |
+| 绝对路径 `"C:/Users/..."` | 相对路径 `"01_data/rawdata/xx.csv"` |
+| `setwd()` | 以项目根为工作目录（Rproj 或 here） |
+| 修改 `01_data/rawdata/` | 只读，派生写到 `06_results/` |
+| `library(plyr)` + `dplyr` 混用 | 只用 `dplyr` |
+| `df$col` + `df[,'col']` 混用 | 统一 tidyverse 管道 |
+| 散落 `.tsv` 输出 | 表格化数据统一 `.xlsx` |
+| 表格化中间数据存 `.rds` | 存 xlsx；`.rds`/`.RData` 仅限非表格对象（模型 / MCA / ggplot） |
+| 脚本里写死 `Table6` / `Fig3` 路径 | 经 `config.R` 的 `table_path()` / `fig_path()` 取（registry，见 project-init `references/registry.md`） |
+| `scale_fill_manual(values = ...)` 自选配色 | `ggsci::scale_fill_lancet()` / `pal_jama()` |
+| 代码写完不跑就交 | **必须 `Rscript` 实际执行** |
+| 结果变了不更新 `0_result_summaries.md` | 强制同步 |
+
+### 必须
+
+- R 脚本顶部：`library()` 全部依赖 + `set.seed(123)` + 注释说明本脚本目的/输入/输出
+- 命名：文件 `NN_描述.R`、变量 `snake_case`、函数 `do_something()`
+- 中文注释关键步骤（为什么这样切分、为什么选这个模型）
+- 双格式导出：`ggsave()` 同时存 PDF (`cairo_pdf`) + PNG (`ragg::agg_png`, 300dpi)
+- 编码 UTF-8，不要 GBK
+
+---
+
+## 四、技术栈
+
+```r
+# 核心（默认加载）
+library(tidyverse)   # 数据处理 + 绘图
+library(here)        # 相对路径
+library(readxl);  library(writexl)  # Excel I/O
+
+# 表格
+library(gtsummary)   # Table 1 / 回归表
+library(compareGroups)  # 基线表备选（论文常用）
+library(flextable)   # Word 表格导出
+
+# 分析
+library(broom);  library(broom.mixed)  # 结果整理
+library(survival); library(survminer)  # 生存
+library(mediation); library(lavaan)    # 中介
+library(meta); library(metafor)        # Meta
+library(tidymodels)  # 统一建模框架（需要时）
+
+# 可视化
+library(ggsci)       # Lancet/JAMA/NEJM 配色
+library(ragg)        # 中文 PNG 导出
+library(patchwork)   # 图面板拼接
+library(ggpubr)      # P 值标注
+```
+
+**导入顺序**: 先 `tidyverse`，再领域包。避免 `plyr` / `reshape` 这些老包。
+
+---
+
+## 五、按分析类型加载参考
+
+根据任务类型，读取对应 reference 文件获得具体模板：
+
+| 任务 | 参考文件 | 关键包 |
+|------|---------|-------|
+| 数据清洗 / 缺失处理 | 用本文件 §八.2 模板 | tidyverse, naniar, mice |
+| 基线表 / 描述统计 | [references/descriptive.md](references/descriptive.md) | gtsummary, compareGroups |
+| 回归（线性/逻辑/Poisson/负二项） | [references/regression.md](references/regression.md) | stats, MASS, broom |
+| 生存分析（KM/Cox/时变/竞争风险） | [references/survival.md](references/survival.md) | survival, survminer, cmprsk |
+| 中介/调节效应 | [references/mediation.md](references/mediation.md) | mediation, lavaan |
+| Meta 分析 / 森林图 | [references/meta.md](references/meta.md) | meta, metafor |
+| 可视化规范 | [references/visualization.md](references/visualization.md) | ggplot2, ggsci, patchwork |
+
+> references/ 目录下文件按需补充；如果某类文件暂缺，使用本文件下方通用模板。
+
+---
+
+## 六、项目结构约定
+
+```
+project/
+├── CLAUDE.md / SESSION_LOG.md / DECISIONS.md
+├── 01_data/rawdata/      # 只读
+├── 02_code/NN_xxx.R      # 编号脚本
+├── 03_tables/TableN.xlsx # 最终表
+├── 04_figures/FigN.pdf/png
+├── 05_reports/结果-M-D-主题/ # 咨询/汇报结果包
+├── 06_results/           # 中间对象：表格 xlsx；非表格对象 rds；按内容命名不编号
+├── 07_paper/             # 论文 + 0_result_summaries.md
+└── 09_backup/            # 旧版归档
+```
+
+脚本之间传值 → **必须落盘到 `06_results/`**，不要靠 R 环境变量（复现会断）。
+
+---
+
+## 七、脚本头部模板（每个 R 脚本顶部必写）
+
+```r
+# ============================================================
+# 脚本：02_code/03_cox_main.R
+# 目的：主分析—Cox 比例风险模型（暴露 X 对 OS 的影响）
+# 输入：06_results/cohort_clean.xlsx
+# 输出：03_tables/Table3_cox.xlsx（路径经 table_path("cox") 取）
+#       04_figures/Fig2_forest.pdf/.png（路径经 fig_path("forest", ext) 取）
+#       06_results/cox_fit.rds（模型对象，非表格才可 rds）
+# 依赖脚本：02_code/02_data_clean.R
+# 日期：2026-MM-DD
+# ============================================================
+
+library(tidyverse)
+library(survival)
+library(survminer)
+library(broom)
+library(writexl)
+library(ggsci)
+
+set.seed(123)
+here::i_am("02_code/03_cox_main.R")  # 锚定工作目录
+```
+
+---
+
+## 八、标准工作流（PLAN → DOC 对应实现）
+
+### 1. 探查（PLAN 阶段的前置）
+
+```r
+dat <- readr::read_csv("01_data/rawdata/cohort.csv")
+
+dat |> glimpse()
+dat |> summarise(across(everything(), ~ sum(is.na(.))))  # 缺失
+dat |> select(where(is.numeric)) |> summary()
+```
+
+**输出到控制台检查即可，不落盘**。这一步看完再填 PLAN 模板。
+
+### 2. 清洗（CODE）
+
+```r
+cohort <- dat |>
+  filter(!is.na(exposure), age >= 18) |>
+  mutate(
+    sex = factor(sex, levels = c(1, 2), labels = c("Male", "Female")),
+    bmi_cat = cut(bmi, c(0, 18.5, 24, 28, Inf),
+                  labels = c("Underweight", "Normal", "Overweight", "Obese"))
+  )
+
+writexl::write_xlsx(cohort, "06_results/cohort_clean.xlsx")  # 表格化数据存 xlsx，不存 rds
+```
+
+### 3. 基线表（CODE）
+
+```r
+# gtsummary 风格
+table1 <- cohort |>
+  gtsummary::tbl_summary(
+    by = exposure,
+    missing = "no",
+    statistic = list(all_continuous() ~ "{mean} ({sd})",
+                     all_categorical() ~ "{n} ({p}%)")
+  ) |>
+  gtsummary::add_p() |>
+  gtsummary::add_overall()
+
+# 主表一律 xlsx（路径经 table_path() 取）；docx 排版交给论文拼装阶段
+table1 |>
+  gtsummary::as_tibble() |>
+  writexl::write_xlsx(table_path("baseline"))
+```
+
+### 4. 主分析（CODE + RUN）
+
+按 `references/[对应分析].md` 里的模板落地。**跑完后必须执行 VERIFY**：
+
+```r
+# VERIFY 检查点
+stopifnot(
+  nobs(fit) == nrow(cohort),      # 样本量一致
+  all(!is.na(coef(fit))),         # 无 NA 系数
+  broom::glance(fit)$p.value < 1  # P 值合理
+)
+```
+
+### 5. 可视化（CODE）
+
+**任何出图先过 `publication-figures` skill**（mm 物理尺寸、字体嵌入、选型、自检清单都在那边）；本节只给落盘骨架：
+
+```r
+p <- ggplot(cohort, aes(x, y, color = group)) +
+  geom_point() +
+  ggsci::scale_color_lancet() +
+  theme_minimal(base_size = 12)
+
+ggsave(fig_path("xxx", "pdf"), p, width = 180, height = 120, units = "mm", device = cairo_pdf)
+ggsave(fig_path("xxx", "png"), p, width = 180, height = 120, units = "mm",
+       dpi = 300, device = ragg::agg_png)
+```
+
+### 6. DOC 阶段（必做）
+
+**A. 更新 `07_paper/0_result_summaries.md`**（如果结果变了）：
+
+```markdown
+## 主分析 · Cox 回归（暴露 X 对 OS）
+
+**样本**: N = 1,234，事件数 = 456
+
+**主结果**:
+
+| 变量 | HR | 95% CI | P |
+|------|-----|--------|---|
+| X=1 vs X=0 | 1.45 | 1.12–1.87 | 0.004 |
+
+**调整变量**: 年龄、性别、BMI、吸烟
+**模型诊断**: PH 假设检验 P=0.32，未违反
+**来源**: `02_code/03_cox_main.R` → `03_tables/Table3_cox.xlsx`
+```
+
+**B. 追加 `SESSION_LOG.md`**：
+
+```markdown
+| 2026-MM-DD HH:MM | 主分析 Cox | 02_code/03_cox_main.R | HR=1.45 (1.12-1.87) |
+```
+
+**C. 如果方法变动了，更新 `DECISIONS.md`**：
+
+```markdown
+## 2026-MM-DD · 主分析改用 Cox 而非逻辑回归
+
+**选择**: Cox 比例风险模型
+**原因**: 随访时间差异大（中位 3.2 年，IQR 1.5–5.8），逻辑回归会忽略时间维度
+**放弃方案**: 逻辑回归（作为敏感性分析保留）
+```
+
+---
+
+## 九、R 代码风格（PREFERENCE）
+
+### 推荐
+
+```r
+# 管道 + tidyverse + 少中间变量
+stage_summary <- dat |>
+  filter(!is.na(mtv_stage)) |>
+  group_by(mtv_stage) |>
+  summarise(
+    n = n(),
+    events = sum(os_event == 1),
+    .groups = "drop"
+  )
+
+# 批量处理 → purrr
+models <- list(
+  crude = Surv(time, event) ~ exposure,
+  adj   = Surv(time, event) ~ exposure + age + sex
+) |>
+  purrr::map(~ coxph(.x, data = cohort))
+```
+
+### 避免
+
+```r
+# 避免：base R 索引
+tmp <- dat[!is.na(dat$mtv_stage), ]
+for (i in 1:nrow(tmp)) { print(i) }
+
+# 避免：中间变量滥用
+tmp1 <- filter(dat, ...)
+tmp2 <- mutate(tmp1, ...)
+tmp3 <- group_by(tmp2, ...)
+```
+
+---
+
+## 十、导出规范（CRITICAL）
+
+### 表格
+
+```r
+# 单 sheet 简表（路径一律经 registry helper 取，不写死编号）
+writexl::write_xlsx(tbl, table_path("xxx"))
+
+# 多 sheet（同一主题）
+writexl::write_xlsx(
+  list(Overall = tbl_all, BySex = tbl_sex, Sensitivity = tbl_sens),
+  table_path("regression")
+)
+```
+
+**一个 xlsx = 一个分析主题**，不要把基线 + 回归 + 生存全塞一本。
+
+### 图件
+
+```r
+save_fig <- function(p, stem, w = 180, h = 120) {  # mm，规格见 publication-figures
+  ggsave(fig_path(stem, "pdf"), p, width = w, height = h, units = "mm", device = cairo_pdf)
+  ggsave(fig_path(stem, "png"), p, width = w, height = h, units = "mm",
+         dpi = 300, device = ragg::agg_png)
+}
+save_fig(p_forest, "forest")
+```
+
+---
+
+## 十一、常见错误排查（FAQ）
+
+| 症状 | 最可能原因 | 处置 |
+|------|----------|------|
+| 中文乱码 PDF | 字体未嵌入 | 用 `cairo_pdf` 而不是默认 `pdf()` |
+| 中文乱码 PNG | 用了默认 png 设备 | 用 `ragg::agg_png` |
+| `coxph` 收敛警告 | 分类变量某层样本为 0 / 完全分离 | 合并稀有类或用 Firth 校正 |
+| `gtsummary` 输出慢 | 变量类型没声明 | 预先 `factor()` / `as.numeric()` |
+| 跨电脑结果不一致 | 没 `set.seed()` | 加 seed + 记录 `sessionInfo()` |
+| `readr::read_csv` 列类型错 | 自动猜测失败 | 显式 `col_types = cols(...)` |
+| Meta 分析异质性高 | 亚组混杂或量纲不一 | 亚组分析 + 检查效应指标 |
+
+**遇到新问题**：先搜 `?函数名` → 看 warning 全文 → 再问用户，不要默默 workaround。
+
+---
+
+## 十二、咨询任务特别加成
+
+如果本任务是给客户的咨询交付（不是自己的研究），**额外执行 `consulting-delivery` skill**，它会要求：
+
+- 整包放入 `05_reports/结果-M-D-主题/`
+- 生成 `run_all.R` 一键复现
+- 写 `00_客户说明.md`（非技术视角）
+- 写 `01_方法与结果.docx`（可直接发给客户）
+- 发给客户前跑 `humanizer-zh` 去 AI 味
+
+---
+
+## 十三、完成前终检清单
+
+宣告完成前，逐项对照：
+
+- [ ] PLAN 阶段的 4 块（口径/输入/输出/验证）都明确写出
+- [ ] R 脚本编号命名且放在 `02_code/`（或结果包 `code/`）
+- [ ] 脚本实际跑过（`Rscript` 输出无 error，warning 已理解）
+- [ ] 输出表格在 `03_tables/`，图在 `04_figures/`，中间在 `06_results/`
+- [ ] 表格同主题合并到一个 xlsx 的多 sheet
+- [ ] 图件 PDF + PNG 双格式、中文不乱码、ggsci 配色
+- [ ] `SESSION_LOG.md` 已追加本次操作
+- [ ] 若结果变化 → `07_paper/0_result_summaries.md` 已同步
+- [ ] 若方法变化 → `DECISIONS.md` 已同步
+- [ ] 根目录无临时文件残留，旧版已入 `09_backup/`
+- [ ] 若是咨询任务 → `consulting-delivery` 终检也通过

@@ -1,0 +1,43 @@
+library(tidyverse)
+library(circlize) 
+
+circos.clear()
+
+bed <- read_tsv("bed.txt",col_names = F) %>% 
+  separate(`X2`,into=c("chr","start"),sep=":") %>%
+  separate(`start`,into=c("start","end"),sep="-") %>% 
+  dplyr::rename(geneID="X1") %>% 
+  mutate(start=as.numeric(start),end=as.numeric(end)) %>% select(2,3,4,1)
+
+circos.initializeWithIdeogram(plotType = NULL)
+
+circos.genomicLabels(bed,labels.column = 4,side = "outside",
+                     connection_height=0.1,labels.side = side)
+
+set_track_gap(mm_h(1))
+
+circos.trackPlotRegion(ylim = c(0,0.1),track.height = 0.05,bg.border="black",panel.fun = function(x, y) {
+  chr = CELL_META$sector.index
+  xlim = CELL_META$xlim
+  ylim = CELL_META$ylim
+  circos.text(mean(xlim),mean(ylim),chr,cex = 0.5,
+              col = "black",facing = "outside", niceFacing = TRUE)
+  
+})
+
+circos.genomicIdeogram(track.height = mm_h(3))
+
+region1 <- read_tsv("data-1.txt",col_names = F) %>%
+  separate(`X2`,into=c("chr","start"),sep=":") %>%
+  separate(`start`,into=c("start","end"),sep="-") %>% select(-1) %>% 
+  mutate(start=as.numeric(start),end=as.numeric(end))
+
+region2 <- read_tsv("data-2.txt",col_names = F) %>% 
+  separate(`X2`,into=c("chr","start"),sep=":") %>%
+  separate(`start`,into=c("start","end"),sep="-") %>% select(-1) %>% 
+  mutate(start=as.numeric(start),end=as.numeric(end))
+
+circos.genomicLink(region1 %>% head(6),region2 %>% head(6),col="#3B9AB2")
+circos.genomicLink(region1 %>% tail(4),region2 %>% tail(4),col="#F21A00")
+
+
