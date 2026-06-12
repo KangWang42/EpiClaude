@@ -21,6 +21,7 @@ R / Python 流行病学项目的硬红线。详细领域规范在各 skill；本
 | 任意 R/Python 统计分析、回归、生存分析、清洗 | `/r-biostats` |
 | **任意出图（ggplot / matplotlib / 论文图件）** | **`/publication-figures`** |
 | 写/改论文任一部件（中/英）、投稿材料、排版 docx | `/academic-publishing` |
+| 写/改报告类 docx（分析报告 / 进展 / 指南 / 手册 / 说明 / 备忘，非论文非投稿） | `/report-writing` |
 | 去 AI 味 / 润色 / 文风更像人 | `/humanizer-zh` |
 | 给客户做 / 咨询交付 / 打包结果 | `/consulting-delivery` |
 | 项目审查 / 复核结果 / 检查一致性 | `/epi-project-audit` |
@@ -59,6 +60,7 @@ R / Python 流行病学项目的硬红线。详细领域规范在各 skill；本
 - 中间表格化数据存 xlsx；仅跨脚本传**非表格 R 对象**（拟合模型 / MCA / ggplot 对象）才用 `.RData`；交付物（05_reports）零 rds/RData。`06_results/` 按内容命名不编号。
 
 ### 报错与 warning（不可放任）
+- **NEVER** 遇到缺失值 / 空值 / NA / NR 就默认按"不全数据"处理或带过；**必须先回到最早的原始/提取数据（含源文献全文）核实是"真的没有"还是"上游提取/链路丢了/只取了摘要"**。确认确实缺失后**先向用户汇报**（哪条、缺什么、可否回填、影响范围），由用户决定，**不擅自填补、丢弃或继续往下算**。
 - **NEVER** 把 error / warning / NaN / 缺数当"正常率 / 比例小"带过（如"256/257 仅 1 个失败"）；每一个都定位具体原因：数据本身缺、脚本 bug、上游 stale、还是阈值过严。
 - **NEVER** 只看 tail 几行就声明成功；必须 `grep -iE "error|warning|traceback|failed|nan"` 全量扫 output，逐条解释。
 - 每个报错/warning 三选一去向：(a) 代码 bug → 修复重跑；(b) 数据问题 → `DECISIONS.md` 记"已知豁免"+原因+影响范围；(c) 库噪声 → `SESSION_LOG.md` 记"经核实可忽略+证据"。**不允许沉默放过**。

@@ -32,6 +32,10 @@ run._element.rPr.rFonts.set(qn('w:eastAsia'), '宋体')   # 中文
 段落格式：首行缩进 2 字符（约 21pt）、1.5 倍行距、两端对齐。参考文献：悬挂缩进
 （`first_line_indent=-21pt`、`left_indent=21pt`）。
 
+**字色一律纯黑**（CRITICAL）：标题、正文、表头、表格内容、图表题注、参考文献全部 `RGBColor(0,0,0)`，
+**禁止彩色字、禁止灰字**；层级只靠字号与加粗区分，不靠颜色。`python-docx` 默认色在某些模板下会被主题色覆盖，
+故每个 run 显式 `run.font.color.rgb = RGBColor(0,0,0)`，不要依赖默认。
+
 英文稿：journal 通常只要求 double-spaced、行号、Times/Arial 12pt、单字体；多数情况直接交 `docx`
 技能产出干净 Word 即可，无需国标级排版。投稿系统多自带排版，作者稿"干净可读"优先于"美观"。
 
@@ -39,6 +43,7 @@ run._element.rPr.rFonts.set(qn('w:eastAsia'), '宋体')   # 中文
 
 表头上下两条 `single` 边线，其余所有边线设 `nil`；末行底线再加一条 single。规格：顶线 1.5pt、
 栏目线 0.5pt、底线 1.5pt。表题作为正文段落放表上方；表注放表下方。表格内文字号小五(9pt)。
+**所有单元格内容垂直居中**（每个 `cell.vertical_alignment = WD_CELL_VERTICAL_ALIGNMENT.CENTER`），论文与报告同此。
 
 ## 4 公式与上下标
 
