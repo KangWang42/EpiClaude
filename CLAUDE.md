@@ -98,7 +98,7 @@ CLAUDE.md / SESSION_LOG.md / DECISIONS.md
 - [ ] 图件满足 `/publication-figures` 规范（mm 尺寸 / PDF+PNG 双存 / 字体嵌入）
 - [ ] 代码已实跑验证 + 全量扫 error/warning
 - [ ] 论文 / 交付文本已按 `/academic-publishing` 与 `/humanizer-zh` 清单自检
-- [ ] 方法变 → `DECISIONS.md`；结果变 → `0_result_summaries.md`；操作完 → `SESSION_LOG.md`
+- [ ] 方法变 → `DECISIONS.md`；结果变 → `0_result_summaries.md`；操作完 → `SESSION_LOG.md`；会话收尾 → 项目 `CLAUDE.md` 当前状态块
 - [ ] 一次性脚本与旧版文件已归 `09_backup/`
 
 ## 4. 规则优先级（冲突时）
