@@ -129,22 +129,26 @@ class Report:
 
     # ---- 段落 ----
     def para(self, text, size=None):
-        """普通完整段落。"""
+        """普通完整段落：首行缩进 2 字符 + 1.5 倍行距（论文式正文）。"""
+        sz = size or self.body_size
         p = self.doc.add_paragraph()
-        p.paragraph_format.line_spacing = 1.25
+        p.paragraph_format.line_spacing = 1.5
+        p.paragraph_format.first_line_indent = Pt(2 * sz)   # 首行缩进 2 字符
         p.paragraph_format.space_after = Pt(4)
-        setfont(p.add_run(text), size=size or self.body_size)
+        setfont(p.add_run(text), size=sz)
         self._md.append(text + "\n")
 
     def para_runs(self, runs, size=None):
         """混合排版段落：runs = [(text, {italic:True}), ...]，用于把 P、vs 等设斜体。"""
+        sz = size or self.body_size
         p = self.doc.add_paragraph()
-        p.paragraph_format.line_spacing = 1.25
+        p.paragraph_format.line_spacing = 1.5
+        p.paragraph_format.first_line_indent = Pt(2 * sz)   # 首行缩进 2 字符
         p.paragraph_format.space_after = Pt(4)
         md = []
         for text, opts in runs:
             opts = opts or {}
-            setfont(p.add_run(text), size=size or self.body_size,
+            setfont(p.add_run(text), size=sz,
                     italic=opts.get("italic", False), bold=opts.get("bold", False))
             md.append(f"*{text}*" if opts.get("italic") else text)
         self._md.append("".join(md) + "\n")
@@ -152,6 +156,7 @@ class Report:
     def summary_item(self, label, text):
         """执行摘要项：加粗标签 + 整句，不用项目符号点。"""
         p = self.doc.add_paragraph()
+        p.paragraph_format.line_spacing = 1.5
         p.paragraph_format.space_after = Pt(3)
         setfont(p.add_run(label + "："), size=self.body_size, bold=True)
         setfont(p.add_run(text), size=self.body_size)
