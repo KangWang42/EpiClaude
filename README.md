@@ -80,7 +80,7 @@ cp -r ~/.claude-epiclaude/skills ~/.claude/skills
 }
 ```
 
-需 Git Bash（Windows）或 bash（macOS/Linux）；无 `jq` 也可用（脚本用环境变量 + python 兜底解析 stdin）。让 AI 据本仓库安装时，可一并据此节自动配好这三道闸。
+每个 hook 都先做轻量判断、**只在命中各自触发条件时才动作**（无 `04_figures/` / `06_results/` 目录或命令不含 `Rscript` 等即刻零成本退出），平时不干扰。需 Git Bash（Windows）或 bash（macOS/Linux）；无 `jq` 也可用（脚本用环境变量 + python 兜底解析 stdin）。让 AI 据本仓库安装时，可一并据此节自动配好这几道闸。
 
 ## 设计原则
 
