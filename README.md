@@ -48,6 +48,32 @@ cp -r ~/.claude-epiclaude/skills ~/.claude/skills
 
 注意：`sysu-ppt` 的字体与部分路径按 Windows 编写（`USERPROFILE` 环境变量、`C:/Windows/Fonts`），macOS / Linux 使用需按 `SKILL.md` 内注释调整。
 
+## 推荐 Hook 配置（可选，把硬红线交给 harness 强制）
+
+CLAUDE.md 的红线靠模型自觉遵守；其中三条可机械化的，建议用 Claude Code hook **强制执行**（比"提醒模型"可靠一个量级）。脚本在仓库 `hooks/`，把它复制到 `~/.claude/hooks/`，再把下面片段并入你自己的 `~/.claude/settings.json`（个人配置，本仓库**不含** settings.json），然后开一次 `/hooks` 或重启 Claude Code 生效。
+
+- `protect_rawdata.sh`（PreToolUse）：拦截对 `01_data/rawdata/` 原始数据的写改，直接 deny。
+- `check_r_syntax.sh`（PostToolUse）：`.R` 文件存盘即 `parse()` 语法检查，出错当场反馈给模型修。
+- `scan_ai_trace.sh`（PostToolUse）：扫文本里 emoji 与 AI 痕迹字样（AI辅助 / 机辅 / 待人工复核…）；放过 `✅`（BACKLOG 状态标记），跳过 `.claude/` 自身。
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      { "matcher": "Write|Edit|MultiEdit", "hooks": [
+        { "type": "command", "command": "bash ~/.claude/hooks/protect_rawdata.sh", "timeout": 15 } ] }
+    ],
+    "PostToolUse": [
+      { "matcher": "Write|Edit|MultiEdit", "hooks": [
+        { "type": "command", "command": "bash ~/.claude/hooks/check_r_syntax.sh", "timeout": 30 },
+        { "type": "command", "command": "bash ~/.claude/hooks/scan_ai_trace.sh", "timeout": 15 } ] }
+    ]
+  }
+}
+```
+
+需 Git Bash（Windows）或 bash（macOS/Linux）；无 `jq` 也可用（脚本用环境变量 + python 兜底解析 stdin）。让 AI 据本仓库安装时，可一并据此节自动配好这三道闸。
+
 ## 设计原则
 
 本仓库的写法遵循几条经验规则，也是它区别于"把所有规范堆进 CLAUDE.md"的地方：
@@ -55,7 +81,7 @@ cp -r ~/.claude-epiclaude/skills ~/.claude/skills
 1. **删除测试**：CLAUDE.md 每条规则都要回答"删了 Claude 会犯什么具体错误"，答不出就删。全文控制在 120 行内——指令越多，单条遵循率越低。
 2. **规则与流程分离**：CLAUDE.md 只放每个 session 都需要的硬红线与路由表；多步骤工作流全部下沉到技能，按需加载不占上下文。
 3. **渐进披露**：技能正文只放核心流程与门禁，模板、句式库、配方代码放 `references/`，由模型在需要时自行读取。
-4. **单一真源**：表图编号走 registry（编号 = 清单位置，脚本经 `table_path()` / `fig_path()` 取路径）；口径常量集中 `config.R` + `conventions.R`；论文数字唯一来源 `0_result_summaries.md`。
+4. **单一真源**：表图编号走 registry（编号 = 清单位置，脚本经 `table_path()` / `fig_path()` 取路径）；口径常量集中 `config.R` + `conventions.R`；论文数字机器单源 `07_paper/results.yaml`（脚本渲染一次写入、`render_summary_md()` 派生 `0_result_summaries.md`、下游 `val()` 取数禁手敲）。
 5. **门禁状态机**：分析（PLAN-CODE-RUN-VERIFY-DOC）、写作（逐部件自检）、交付（八阶段）、审查（六层）都是"不过检不许进下一步"的状态机，而非建议清单。
 6. **强制实跑与全量扫错**：代码写完必须实际执行，输出全量 grep error / warning，每条报错三选一去向（修复 / 记录豁免 / 核实可忽略），不允许沉默放过。
 
@@ -70,7 +96,7 @@ cp -r ~/.claude-epiclaude/skills ~/.claude/skills
 04_figures/        Fig{N}_*.{pdf,png}
 05_reports/        对外交付包
 06_results/        中间对象（按内容命名不编号）
-07_paper/          论文 + 0_result_summaries.md（数字唯一源）
+07_paper/          论文 + results.yaml（数字机器单源）+ 0_result_summaries.md（由其派生）
 09_backup/         旧版 / 一次性脚本 / 探索实验
 ```
 
