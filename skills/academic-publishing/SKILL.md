@@ -73,7 +73,7 @@ description: |
 
 按顺序读，建立事实底座：
 
-1. `07_paper/0_result_summaries.md` — **数据唯一源**。没有则先让用户生成或指给我（r-biostats 产出）。
+1. `07_paper/results.yaml`（结果机器单源）/ 其派生 `0_result_summaries.md` — **数据唯一源**，脚本拼装用 `val()` 取数。没有则先让用户生成或指给我（r-biostats 产出）。
 2. `DECISIONS.md` — 设计/方法口径（分组、终点、纳排、主分析、敏感性分析的确定方案）。
 3. `03_tables/` 与 `04_figures/`（含 `supplementary/`）— 进正文的表图清单及其编号（来自 registry）。
 4. `02_code/` 关键脚本顶部 — 确认变量定义、模型设定、软件版本，方法节据此写，**不臆测**。

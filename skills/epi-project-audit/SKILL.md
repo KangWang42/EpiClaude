@@ -23,7 +23,7 @@ description: |
 2. `README.md`（项目说明）
 3. `DECISIONS.md`（方法决策历史）
 4. `SESSION_LOG.md`（操作日志）
-5. `07_paper/0_result_summaries.md`（结果唯一源）
+5. `07_paper/results.yaml`（结果机器单源）+ 派生 `0_result_summaries.md`
 
 **缺失关键文件就已经是扣分项**，要写入"Problems found"。
 

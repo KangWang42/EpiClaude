@@ -43,7 +43,7 @@ description: |
 | CODE | 脚本超过 300 行但没拆分、用了 for 循环/绝对路径/print 调试、没编号命名 |
 | RUN | 没真跑过、有 warning 没处理、报错被 `tryCatch` 吞掉 |
 | VERIFY | 样本量与预期不符、数字明显异常（NA 爆表、HR=Inf）、图表留白/乱码/空白页 |
-| DOC | session_log 没更新、结果变了但 0_result_summaries.md 没改 |
+| DOC | session_log 没更新、结果变了但 results.yaml（→派生 md）没改 |
 
 ### 失败回退规则
 
@@ -104,7 +104,7 @@ description: |
 | 脚本里写死 `Table6` / `Fig3` 路径 | 经 `config.R` 的 `table_path()` / `fig_path()` 取（registry，见 project-init `references/registry.md`） |
 | `scale_fill_manual(values = ...)` 自选配色 | `ggsci::scale_fill_lancet()` / `pal_jama()` |
 | 代码写完不跑就交 | **必须 `Rscript` 实际执行** |
-| 结果变了不更新 `0_result_summaries.md` | 强制同步 |
+| 结果变了不更新 `results.yaml`（→派生 md） | 强制同步：`add_result` + `render_summary_md` |
 
 ### 必须
 
@@ -293,23 +293,19 @@ ggsave(fig_path("xxx", "png"), p, width = 180, height = 120, units = "mm",
 
 ### 6. DOC 阶段（必做）
 
-**A. 更新 `07_paper/0_result_summaries.md`**（如果结果变了）：
+**A. 写入结果单源 `07_paper/results.yaml`**（结果变了就写；**NEVER 手写 0_result_summaries.md**）：
 
-```markdown
-## 主分析 · Cox 回归（暴露 X 对 OS）
-
-**样本**: N = 1,234，事件数 = 456
-
-**主结果**:
-
-| 变量 | HR | 95% CI | P |
-|------|-----|--------|---|
-| X=1 vs X=0 | 1.45 | 1.12–1.87 | 0.004 |
-
-**调整变量**: 年龄、性别、BMI、吸烟
-**模型诊断**: PH 假设检验 P=0.32，未违反
-**来源**: `02_code/03_cox_main.R` → `03_tables/Table3_cox.xlsx`
+```r
+source("../skills/r-biostats/scripts/emit_summary.R")  # 或全局路径
+yp <- "07_paper/results.yaml"
+add_result(yp, "exposure_HR", label = "暴露 X 对 OS 的 HR",
+           est = 1.45, ci_low = 1.12, ci_high = 1.87, p = 0.004,
+           section = "主分析", source = "02_code/03_cox_main.R", table = "Table3",
+           interp = "暴露 X 与 OS 风险升高相关，调整年龄/性别/BMI/吸烟后仍稳健。")
+render_summary_md(yp, "07_paper/0_result_summaries.md")  # 派生人读版
 ```
+
+数字渲染、`val()` 取数、解读待复核机制详见 [references/result-summary-schema.md](references/result-summary-schema.md)。下游论文/报告/PPT 一律 `val()` 取，禁手敲。
 
 **B. 追加 `SESSION_LOG.md`**：
 
@@ -336,39 +332,8 @@ ggsave(fig_path("xxx", "png"), p, width = 180, height = 120, units = "mm",
 
 ## 九、R 代码风格（PREFERENCE）
 
-### 推荐
-
-```r
-# 管道 + tidyverse + 少中间变量
-stage_summary <- dat |>
-  filter(!is.na(mtv_stage)) |>
-  group_by(mtv_stage) |>
-  summarise(
-    n = n(),
-    events = sum(os_event == 1),
-    .groups = "drop"
-  )
-
-# 批量处理 → purrr
-models <- list(
-  crude = Surv(time, event) ~ exposure,
-  adj   = Surv(time, event) ~ exposure + age + sex
-) |>
-  purrr::map(~ coxph(.x, data = cohort))
-```
-
-### 避免
-
-```r
-# 避免：base R 索引
-tmp <- dat[!is.na(dat$mtv_stage), ]
-for (i in 1:nrow(tmp)) { print(i) }
-
-# 避免：中间变量滥用
-tmp1 <- filter(dat, ...)
-tmp2 <- mutate(tmp1, ...)
-tmp3 <- group_by(tmp2, ...)
-```
+风格细则与好/差对照见 [references/code-style.md](references/code-style.md)（软约束，服从工作流/红线）。一句话：
+管道为主线、中间变量少而短且语义化命名（`data`→`data_neat`→`data_baseline`，不用 `tmp1/tmp2`）、`map`/`across`/`case_when` 优先于循环与连串 if、最终脚本输出干净无调试 `cat`/`print`、`# 节 ----` 分节 + 关键步骤一句话注释、不留死代码。
 
 ---
 
@@ -392,12 +357,9 @@ writexl::write_xlsx(
 ### 图件
 
 ```r
-save_fig <- function(p, stem, w = 180, h = 120) {  # mm，规格见 publication-figures
-  ggsave(fig_path(stem, "pdf"), p, width = w, height = h, units = "mm", device = cairo_pdf)
-  ggsave(fig_path(stem, "png"), p, width = w, height = h, units = "mm",
-         dpi = 300, device = ragg::agg_png)
-}
-save_fig(p_forest, "forest")
+# 出图用 publication-figures 的 fig_setup.R（theme_pub + save_fig 双存，勿在此重定义）
+source("../skills/publication-figures/scripts/fig_setup.R")
+save_fig(p_forest, "forest", type = "forest")   # type 自带各图型推荐尺寸；详见 publication-figures
 ```
 
 ---
@@ -441,7 +403,7 @@ save_fig(p_forest, "forest")
 - [ ] 表格同主题合并到一个 xlsx 的多 sheet
 - [ ] 图件 PDF + PNG 双格式、中文不乱码、ggsci 配色
 - [ ] `SESSION_LOG.md` 已追加本次操作
-- [ ] 若结果变化 → `07_paper/0_result_summaries.md` 已同步
+- [ ] 若结果变化 → `add_result()` 写 `07_paper/results.yaml` + `render_summary_md()` 派生 md（未手写 md、未手敲数字）
 - [ ] 若方法变化 → `DECISIONS.md` 已同步
 - [ ] 若冒出"还能补"的想法（待做分析/缺数据/下一步）→ `BACKLOG.md` 已追加
 - [ ] 根目录无临时文件残留，旧版已入 `09_backup/`

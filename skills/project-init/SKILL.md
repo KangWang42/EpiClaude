@@ -107,7 +107,7 @@ init_project(
 > 本文件每 session 必然注入；下面这份清单 = 不依赖记忆、不重读全项目即可进入状态的最短路径。
 
 1. 本文件「口径锁定」节 —— **当前口径以此为准**（下游全部服从）
-2. `07_paper/0_result_summaries.md` —— 最新结果数字（论文唯一数据源）
+2. `07_paper/results.yaml` —— 结果机器单源（→ 派生 `0_result_summaries.md`；下游 `val()` 取数）
 3. `DECISIONS.md` 末尾 2~3 条 —— 最近的方法变更与原因
 4. `BACKLOG.md` 主表未完成项 —— 全程累积的待补项（缺文献 / 数据 / 方法 / 下一步规划），挑「完善方式=AI」的必补项作为下一步候选
 5. `02_code/conventions.R` + `config.R` —— 口径常量真源（有序因子序 / 配色 / registry）
@@ -218,36 +218,12 @@ init_project(
 |--------------|----------------------|------|------|
 ```
 
-### 4.4 `07_paper/0_result_summaries.md`
+### 4.4 结果单源 `07_paper/results.yaml`（+ 派生 `0_result_summaries.md`）
 
-```markdown
-# 结果汇总（论文唯一数据源）
-
-本文件是项目的**最终结果**。所有图表、docx、论文正文的数字，都应从这里取。
-一旦结果变化 → 第一时间同步更新这里 → 再更新下游图表和正文。
-
----
-
-## 样本特征
-
-N = [待填]
-
-（基线表在 03_tables/Table1_baseline.xlsx）
-
-## 主分析
-
-[分析名称]
-- 模型：
-- 样本：
-- 结果：
-- 来源：`02_code/NN_xxx.R` → `03_tables/TableN_xxx.xlsx`
-
-## 敏感性分析
-
-## 亚组分析
-
-## 结论（一句话）
-```
+`init_project.R` 生成**机器可读单源** `results.yaml` 与其派生 `0_result_summaries.md`（标注勿手改）。
+数字在 r-biostats `scripts/emit_summary.R` 的 `add_result()` 渲染一次写入 results.yaml（raw 分量 + rendered 成品串 + interp 解读），
+`render_summary_md()` 派生 md；下游论文/报告/PPT 一律 `val("07_paper/results.yaml","key")` 取数禁手敲。
+schema 与用法详见 r-biostats `references/result-summary-schema.md`。改数字只改 results.yaml 再重派生（双向一致性）。
 
 ### 4.5 `01_data/README.md`（数据字典模板）
 
