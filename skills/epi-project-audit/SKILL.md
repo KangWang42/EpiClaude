@@ -162,6 +162,16 @@ description: |
 
 **这是一切审查的核心：数字必须从"数据源 → 脚本产物 → 表 → 图 → 摘要 → 正文"一致到底。**
 
+### 先跑自动审计（结果单一真源项目）
+
+若项目已用结果单一真源（`07_paper/results.yaml`，见 r-biostats `result-summary-schema.md`），**先跑**：
+
+```bash
+python <此skill>/scripts/check_consistency.py <项目根>
+```
+
+它双向比对交付文档（论文/报告/PPT）里的 CI、P 与 results.yaml：方向A 报"文中统计量在源中无匹配"（疑似手敲/陈旧/未回写），方向B 报"源有文档未用"，并列出 `interp_review` 的"解读待复核"键。退出码非 0 = Layer 4 未过门禁。脚本是初筛，下方人工矩阵仍需补图内/精度等它覆盖不到的项。
+
 ### TODO 清单
 
 - [ ] 从 `0_result_summaries.md` 取出**每一个关键数字**（样本量、主效应、P 值、95%CI、事件数）

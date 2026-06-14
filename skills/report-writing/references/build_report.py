@@ -32,6 +32,23 @@ EN_FONT = "Times New Roman"  # 英文/数字
 BLACK = (0, 0, 0)
 
 
+def val(yaml_path, key, which="full"):
+    """从结果单一真源 results.yaml 取已渲染成品串（C1：下游取数禁手敲）。
+    数字只在 results.yaml 改；改下游须先回写真源再传播。
+    用法：rep.para("S2 vs S1 差异为 " + val("07_paper/results.yaml", "S2_vs_S1_diff") + "。")
+    """
+    import yaml
+    with open(yaml_path, "r", encoding="utf-8") as f:
+        doc = yaml.safe_load(f) or {}
+    res = (doc.get("results") or {}).get(key)
+    if res is None:
+        raise KeyError(f"results.yaml 无键：{key}")
+    s = (res.get("rendered") or {}).get(which)
+    if s is None:
+        raise KeyError(f"键 {key} 无 rendered.{which}")
+    return s
+
+
 def setfont(run, cn=CN_BODY, en=EN_FONT, size=10.5, bold=False, italic=False, color=BLACK):
     """每个 run 都同时设英文字体与中文 eastAsia 字体，否则字体会回退。"""
     run.font.size = Pt(size)

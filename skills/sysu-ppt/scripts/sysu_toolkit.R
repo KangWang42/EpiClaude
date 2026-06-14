@@ -13,6 +13,15 @@ library(officer)
 library(magrittr)
 library(flextable)
 
+# 结果单一真源取数（C1：下游取数禁手敲）。数字只在 results.yaml 改，PPT 一律 val() 取。
+# 用法：tx(paste0("S2 vs S1 差异 ", val("07_paper/results.yaml", "S2_vs_S1_diff")))
+val <- function(path, key, which = "full") {
+  doc <- yaml::read_yaml(path)
+  v <- doc$results[[key]]$rendered[[which]]
+  if (is.null(v)) stop(sprintf("results.yaml 取数失败：%s / %s", key, which))
+  v
+}
+
 # ============================================================================
 # 1. 全局样式
 # ============================================================================

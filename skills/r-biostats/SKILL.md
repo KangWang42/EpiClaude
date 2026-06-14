@@ -113,6 +113,7 @@ description: |
 - 中文注释关键步骤（为什么这样切分、为什么选这个模型）
 - 双格式导出：`ggsave()` 同时存 PDF (`cairo_pdf`) + PNG (`ragg::agg_png`, 300dpi)
 - 编码 UTF-8，不要 GBK
+- **结果数字写入单源**：算完每个指标即 `add_result()` 写入 `07_paper/results.yaml`（`scripts/emit_summary.R`，口径单源、自动渲染），再 `render_summary_md()` 生成 `0_result_summaries.md`。**NEVER** 手敲 rendered、**NEVER** 手改派生的 md。详见 [references/result-summary-schema.md](references/result-summary-schema.md)。
 
 ---
 
@@ -160,6 +161,7 @@ library(ggpubr)      # P 值标注
 | 中介/调节效应 | [references/mediation.md](references/mediation.md) | mediation, lavaan |
 | Meta 分析 / 森林图 | [references/meta.md](references/meta.md) | meta, metafor |
 | 可视化规范 | [references/visualization.md](references/visualization.md) | ggplot2, ggsci, patchwork |
+| 结果汇总单源（results.yaml + 派生 md） | [references/result-summary-schema.md](references/result-summary-schema.md) | yaml（`scripts/emit_summary.R`） |
 
 > references/ 目录下文件按需补充；如果某类文件暂缺，使用本文件下方通用模板。
 
@@ -176,7 +178,7 @@ project/
 ├── 04_figures/FigN.pdf/png
 ├── 05_reports/结果-M-D-主题/ # 咨询/汇报结果包
 ├── 06_results/           # 中间对象：表格 xlsx；非表格对象 rds；按内容命名不编号
-├── 07_paper/             # 论文 + 0_result_summaries.md
+├── 07_paper/             # 论文 + results.yaml(数字单源) + 0_result_summaries.md(由其派生)
 └── 09_backup/            # 旧版归档
 ```
 

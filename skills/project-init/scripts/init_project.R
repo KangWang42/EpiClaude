@@ -179,32 +179,38 @@ init_project <- function(name,
     file.path(proj, "README.md"), useBytes = TRUE
   )
 
-  # 07_paper/0_result_summaries.md ------------------------
+  # 07_paper/results.yaml（机器可读单源）------------------
   writeLines(
-    c("# 结果汇总（论文唯一数据源）",
+    c("# 结果单一真源（machine-readable）。数字只在此处改；",
+      "# 下游论文/报告/PPT 一律 val(\"07_paper/results.yaml\", \"key\") 取数，禁手敲。",
+      "# 改下游须先回写此处再向其余下游传播（双向一致性）。",
+      "# 写入与渲染用 r-biostats/scripts/emit_summary.R 的 add_result()；",
+      "# 0_result_summaries.md 由 render_summary_md() 从本文件生成，勿手改 md。",
+      "meta:",
+      "  project: \"[项目名]\"",
+      "results: {}",
+      "# 示例（由 add_result 自动写成，勿手敲）：",
+      "#  S2_vs_S1_diff:",
+      "#    label: S2 vs S1 组间差异",
+      "#    section: 主要结果",
+      "#    source: 02_code/03_main.R",
+      "#    table: Table2",
+      "#    raw: {est: -1.82, ci_low: -3.29, ci_high: -0.36, p: 0.015, unit: kg}",
+      "#    rendered: {full: \"...\", est_ci: \"...\", p: \"...\"}",
+      "#    interp: \"结论/效应解读（人写）；数字变了会自动标 interp_review 待复核\"",
+      "# conclusion: \"跨结果总结论（人写，set_conclusion 写）\""),
+    file.path(proj, "07_paper/results.yaml"), useBytes = TRUE
+  )
+
+  # 07_paper/0_result_summaries.md（由 results.yaml 自动生成）----
+  writeLines(
+    c("# 结果汇总（论文数据源 · 由 results.yaml 自动生成）",
       "",
-      "本文件是项目的**最终结果**。所有图表、docx、论文正文的数字，",
-      "都应从这里取。一旦结果变化 → 第一时间同步更新这里。",
+      "本文件由 `emit_summary.R::render_summary_md()` 从 `results.yaml` 渲染，**勿手改**。",
+      "改数字 → 改 `results.yaml`（或重跑产出脚本的 add_result）→ 重跑 render_summary_md。",
+      "所有图表 / docx / 论文正文的数字一律 val() 从 results.yaml 取，与本文件同源。",
       "",
-      "---",
-      "",
-      "## 样本特征",
-      "",
-      "N = [待填]",
-      "",
-      "## 主分析",
-      "",
-      "[分析名称]",
-      "- 模型：",
-      "- 样本：",
-      "- 结果：",
-      "- 来源：`02_code/NN_xxx.R` → `03_tables/TableN_xxx.xlsx`",
-      "",
-      "## 敏感性分析",
-      "",
-      "## 亚组分析",
-      "",
-      "## 结论（一句话）"),
+      "（首次分析后此处自动填入分节结果。）"),
     file.path(proj, "07_paper/0_result_summaries.md"), useBytes = TRUE
   )
 
