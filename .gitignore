@@ -2,6 +2,7 @@
 # 本目录含凭据 / 会话历史 / 缓存等敏感文件，严禁改成黑名单模式。
 /*
 !/.gitignore
+!/.gitattributes
 !/CLAUDE.md
 !/README.md
 !/skills/

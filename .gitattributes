@@ -1,0 +1,2 @@
+# Shell 脚本强制 LF 行尾，否则 Windows 克隆出 CRLF 会让 bash 报 $'\r' 错误。
+*.sh text eol=lf
