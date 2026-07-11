@@ -3,7 +3,9 @@
 # 逐元素自检清单，逼主模型 Read 该图逐条判断。hook 不做视觉判断（命令看不了图），
 # 只负责"逮住出图事件 + 强制自检"，判断交给视觉能力强的主模型。
 [ -d 04_figures ] || exit 0                       # 无 04_figures（如非项目目录）直接跳过
-state="$HOME/.claude/.fig_selfcheck_state"        # 已提醒记录（path|mtime），避免重复提醒
+state_root="${EPICLAUDE_STATE_HOME:-$HOME/.epiclaude}"
+mkdir -p "$state_root" 2>/dev/null
+state="$state_root/.fig_selfcheck_state"          # 已提醒记录（path|mtime），避免重复提醒
 touch "$state" 2>/dev/null
 
 new=""

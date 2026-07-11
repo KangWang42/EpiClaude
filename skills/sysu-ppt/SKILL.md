@@ -28,7 +28,13 @@ description: 中山大学学术汇报 PPT 制作技能。基于 officer R 包和
 
 ```r
 Sys.setlocale("LC_ALL", "Chinese (Simplified)_China.utf8")
-source(file.path(Sys.getenv("USERPROFILE"), ".claude/skills/sysu-ppt/scripts/sysu_toolkit.R"))
+skill_roots <- path.expand(c(
+  Sys.getenv("EPICLAUDE_SKILLS"), "~/.claude/skills", "~/.agents/skills", "~/.codex/skills"
+))
+skill_dirs <- file.path(skill_roots[nzchar(skill_roots)], "sysu-ppt")
+SKILL <- skill_dirs[dir.exists(skill_dirs)][1]
+if (!length(SKILL) || is.na(SKILL)) stop("找不到 sysu-ppt；请设置 EPICLAUDE_SKILLS")
+source(file.path(SKILL, "scripts", "sysu_toolkit.R"))
 
 ppt <- sysu_init("default")          # 默认模板；说"模板2"则用 sysu_init("模板2")
 ppt <- sysu_add_cover(ppt, "主标题", "English Subtitle", "汇报人：姓名", "2026 组会")

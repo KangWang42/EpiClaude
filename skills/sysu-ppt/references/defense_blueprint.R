@@ -39,7 +39,12 @@
 # ============================================================
 
 Sys.setlocale("LC_ALL", "Chinese (Simplified)_China.utf8")
-SKILL <- file.path(Sys.getenv("USERPROFILE"), ".claude/skills/sysu-ppt")
+skill_roots <- path.expand(c(
+  Sys.getenv("EPICLAUDE_SKILLS"), "~/.claude/skills", "~/.agents/skills", "~/.codex/skills"
+))
+skill_dirs <- file.path(skill_roots[nzchar(skill_roots)], "sysu-ppt")
+SKILL <- skill_dirs[dir.exists(skill_dirs)][1]
+if (!length(SKILL) || is.na(SKILL)) stop("找不到 sysu-ppt；请设置 EPICLAUDE_SKILLS")
 source(file.path(SKILL, "scripts", "sysu_toolkit.R"))
 
 TPL <- "default"

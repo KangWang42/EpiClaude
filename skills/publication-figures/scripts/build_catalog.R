@@ -8,14 +8,25 @@
 # ============================================================
 `%||%` <- function(a, b) if (is.null(a) || length(a) == 0) b else a
 
-# skill 根：优先命令行 --skill=，否则用默认安装路径
+# skill 根：优先命令行 --skill= / EPICLAUDE_SKILLS，再检测 Claude/Codex 用户目录
 .args <- commandArgs(trailingOnly = TRUE)
 .sk <- sub("^--skill=", "", .args[grepl("^--skill=", .args)])
-SKILL <- if (length(.sk)) .sk else file.path(Sys.getenv("USERPROFILE"), ".claude/skills/publication-figures")
+.skill_roots <- path.expand(c(
+  Sys.getenv("EPICLAUDE_SKILLS"),
+  "~/.claude/skills",
+  "~/.agents/skills",
+  "~/.codex/skills"
+))
+.skill_candidates <- file.path(.skill_roots[nzchar(.skill_roots)], "publication-figures")
+.default_skill <- .skill_candidates[dir.exists(.skill_candidates)][1]
+if (!length(.sk) && (length(.default_skill) == 0 || is.na(.default_skill))) {
+  stop("找不到 publication-figures；请传 --skill=... 或设置 EPICLAUDE_SKILLS")
+}
+SKILL <- if (length(.sk)) .sk else .default_skill
 ADV  <- file.path(SKILL, "references", "recipes_advanced")
 COMMON <- file.path(SKILL, "references", "recipes_common_50")
 # 本地全库（含教程/预览/数据）——只读来源
-SRC_ADV <- "E:/01 R/2 统计方法/04 付费资料/1 149套可视化代码合集"
+SRC_ADV <- Sys.getenv("PUBLICATION_FIGURES_SOURCE", unset = "")
 
 # ---- 同步教程+预览进 skill（跳过 data；让 skill 自包含）----
 sync_rich <- function() {

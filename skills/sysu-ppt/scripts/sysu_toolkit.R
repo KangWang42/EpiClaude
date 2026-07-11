@@ -66,10 +66,14 @@ G <- list(
 .ACT <- new.env(parent = emptyenv())   # 活动模板：master/cover/content/blank/cover_style
 
 .assets_dir <- function() {
+  skill_roots <- path.expand(c(
+    Sys.getenv("EPICLAUDE_SKILLS"),
+    "~/.claude/skills", "~/.agents/skills", "~/.codex/skills"
+  ))
   cand <- c(tryCatch(file.path(dirname(dirname(sys.frame(1)$ofile)), "assets"),
                      error = function(e) NA),
             "assets", "../assets",
-            file.path(Sys.getenv("USERPROFILE"), ".claude/skills/sysu-ppt/assets"))
+            file.path(skill_roots[nzchar(skill_roots)], "sysu-ppt", "assets"))
   cand <- cand[!is.na(cand)]
   hit <- cand[dir.exists(cand)]
   if (length(hit)) hit[1] else NA_character_

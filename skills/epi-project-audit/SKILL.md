@@ -277,7 +277,7 @@ Layer 4 审查必须输出一张**数字一致性矩阵**：
 - Status: pass / pass with concerns / fail
 - Scope: [审查范围，哪些层]
 - Date: YYYY-MM-DD
-- Reviewer: Claude (epi-project-audit skill)
+- Reviewer: Agent (`epi-project-audit` skill)
 
 ## Layer-by-layer results
 

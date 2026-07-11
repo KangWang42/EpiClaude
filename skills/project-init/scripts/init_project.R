@@ -2,8 +2,8 @@
 # init_project.R
 # 一键创建卫生统计研究项目骨架
 #
-# 用法：
-#   source("~/.claude/skills/project-init/scripts/init_project.R")
+# 用法：从 Claude Code 的 ~/.claude/skills、Codex 的 ~/.agents/skills，
+#       或 EPICLAUDE_SKILLS 指定目录 source 本脚本后运行：
 #   init_project("cohort_smoking_chd", type = 1, mode = "research")
 #   init_project("client_xxx_survival", type = 1, mode = "consulting")
 # ============================================================
@@ -47,11 +47,11 @@ init_project <- function(name,
   today_md <- format(Sys.Date(), "%-m-%-d")
   type_name <- type_names[type]
 
-  # CLAUDE.md ---------------------------------------------
+  # 项目规则：CLAUDE.md 为单源，AGENTS.md 指示 Codex 读取它 ----
   claude_md <- c(
     sprintf("# %s · 项目级规则", name),
     "",
-    "本文件继承 `~/.claude/CLAUDE.md` 的全局 EpiClaude 规则。",
+    "本项目继承 EpiClaude 全局规则（Claude Code：`~/.claude/CLAUDE.md`；Codex：`~/.codex/AGENTS.md`）。",
     "以下是本项目专属约束。",
     "",
     "## 项目基本信息",
@@ -81,6 +81,13 @@ init_project <- function(name,
         "") else NULL
   )
   writeLines(claude_md, file.path(proj, "CLAUDE.md"), useBytes = TRUE)
+  writeLines(
+    c("# Codex 项目指引",
+      "",
+      "开始任何项目工作前，完整读取同目录 `CLAUDE.md`。",
+      "`CLAUDE.md` 是项目口径、当前状态与工作流约束的单一真源；本文件不复制其内容，避免双份规则漂移。"),
+    file.path(proj, "AGENTS.md"), useBytes = TRUE
+  )
 
   # SESSION_LOG.md ----------------------------------------
   writeLines(
@@ -174,7 +181,7 @@ init_project <- function(name,
       "",
       "1. 把原始数据放入 `01_data/rawdata/`",
       "2. 填写 `01_data/README.md` 数据字典",
-      "3. 锁口径：打开 `CLAUDE.md`，填\"口径锁定\"节",
+      "3. 锁口径：打开 `CLAUDE.md`，填\"口径锁定\"节（Codex 由 `AGENTS.md` 自动指向该单源）",
       "4. 开始清洗：打开 `02_code/01_data_cleaning.R`"),
     file.path(proj, "README.md"), useBytes = TRUE
   )

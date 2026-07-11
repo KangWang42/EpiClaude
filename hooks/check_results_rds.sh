@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # PostToolUse(Bash)：检测 06_results/ 新写入的 .rds，提醒"表格化数据应存 xlsx，rds 仅限非表格对象"。
 [ -d 06_results ] || exit 0
-state="$HOME/.claude/.rds_reminded"
+state_root="${EPICLAUDE_STATE_HOME:-$HOME/.epiclaude}"
+mkdir -p "$state_root" 2>/dev/null
+state="$state_root/.rds_reminded"
 touch "$state" 2>/dev/null
 flag=""
 while IFS= read -r f; do

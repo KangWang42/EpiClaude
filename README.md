@@ -1,14 +1,17 @@
 # EpiClaude
 
-面向流行病学 / 卫生统计研究的 Claude Code 全局规则与技能集（R + Python），覆盖从项目初始化、统计分析、发表级图表、论文写作、咨询交付到项目审查的完整研究流程。
+面向流行病学 / 卫生统计研究的 Claude Code 与 Codex 共用规则和技能集（R + Python），覆盖从项目初始化、统计分析、发表级图表、论文写作、咨询交付到项目审查的完整研究流程。
 
-A Claude Code global-rules file and skill ecosystem for epidemiology / biostatistics research, covering the full workflow: project scaffolding, statistical analysis, publication-quality figures, manuscript writing, consulting deliverables, and project auditing.
+A shared Claude Code and Codex rule/skill ecosystem for epidemiology and biostatistics research, covering project scaffolding, statistical analysis, publication-quality figures, manuscript writing, consulting deliverables, and project auditing.
 
 ## 仓库内容
 
 ```
-CLAUDE.md          全局规则（每个 session 加载的跨任务硬红线，< 120 行）
-skills/            技能集（按需加载，渐进披露）
+CLAUDE.md          双平台全局规则源（安装为 Claude 的 CLAUDE.md / Codex 的 AGENTS.md）
+AGENTS.md          本仓库 contributor guide
+skills/            Agent Skills 标准技能集（按需加载，渐进披露）
+hooks/             Claude Code / Codex 共用的确定性检查脚本
+scripts/           双平台用户配置同步工具
 ```
 
 ## 技能架构
@@ -28,33 +31,41 @@ skills/            技能集（按需加载，渐进披露）
 | | `epi-project-audit` | 六层项目审查状态机：骨架 / 数据链 / 代码 / 结果一致性 / 科学合理性 / 交付一致性，带数字一致性矩阵 |
 | 工具层 | `docx` `pdf` `pptx` `xlsx` `skill-creator` `git-commit-helper` | 文档处理与技能维护（前五个源自 Anthropic 官方技能库，保留各自 LICENSE） |
 
-## 安装
+## 双平台兼容
 
-把本仓库内容放入 Claude Code 的用户配置目录：
+技能主体遵循 Agent Skills 目录结构：每个 skill 必有 `SKILL.md`（`name` + `description`），可带 `scripts/`、`references/`、`assets/` 与 Codex 可选的 `agents/openai.yaml`。Claude Code 与 Codex 读取同一份技能内容，不维护两套正文。
+
+| 项目 | Claude Code | Codex |
+|---|---|---|
+| 全局规则 | `~/.claude/CLAUDE.md` | `~/.codex/AGENTS.md` |
+| 用户 skills | `~/.claude/skills/` | `~/.agents/skills/` |
+| 显式调用 | `/skill-name` | `$skill-name`（或 `/skills` 选择） |
+| 自动触发 | 按 `description` | 按 `description` |
+
+Codex 的目录和调用约定见官方 [Build skills](https://learn.chatgpt.com/docs/build-skills) 与 [AGENTS.md](https://learn.chatgpt.com/docs/agent-configuration/agents-md)。`skill-creator` 已由 Codex 内置，向 Codex 同步时默认跳过仓库同名副本，避免重复技能。
+
+## 安装与同步
+
+克隆后运行仓库自带同步器，将规则、skills 与 hook 脚本部署到两个用户配置目录：
 
 ```bash
-# Windows
-git clone git@github.com:KangWang42/EpiClaude.git "%USERPROFILE%\.claude-epiclaude"
-copy "%USERPROFILE%\.claude-epiclaude\CLAUDE.md" "%USERPROFILE%\.claude\CLAUDE.md"
-xcopy /E /I "%USERPROFILE%\.claude-epiclaude\skills" "%USERPROFILE%\.claude\skills"
-
-# macOS / Linux
-git clone git@github.com:KangWang42/EpiClaude.git ~/.claude-epiclaude
-cp ~/.claude-epiclaude/CLAUDE.md ~/.claude/CLAUDE.md
-cp -r ~/.claude-epiclaude/skills ~/.claude/skills
+git clone git@github.com:KangWang42/EpiClaude.git ~/epiclaude
+python ~/epiclaude/scripts/sync_user_configs.py --target all
 ```
 
-也可只挑选需要的单个技能目录复制到 `~/.claude/skills/`。各技能自包含（`SKILL.md` + `references/` + `scripts/` + `assets/`），互相之间只有声明式的上下游依赖。
+只安装一个平台时用 `--target claude` 或 `--target codex`。Codex 官方用户目录默认为 `~/.agents/skills/`；若现有环境明确从 `~/.codex/skills/` 发现技能，可传 `--codex-skills-dir ~/.codex/skills`。每次更新仓库后重跑同一命令即可同步；脚本只覆盖 EpiClaude 管理的规则、skills 和 hook 脚本，不改认证、模型或其他个人配置。
+
+也可只挑选单个技能目录复制到相应 `skills/` 目录。修改技能后若界面未刷新，重启对应客户端。
 
 注意：`sysu-ppt` 的字体与部分路径按 Windows 编写（`USERPROFILE` 环境变量、`C:/Windows/Fonts`），macOS / Linux 使用需按 `SKILL.md` 内注释调整。
 
 ## 推荐 Hook 配置（可选，把硬红线交给 harness 强制）
 
-规则靠模型自觉遵守；其中五条可机械化的，建议用 Claude Code hook **强制执行**（比"提醒模型"可靠一个量级）。脚本在仓库 `hooks/`，把它复制到 `~/.claude/hooks/`，再把下面片段并入你自己的 `~/.claude/settings.json`（个人配置，本仓库**不含** settings.json），然后开一次 `/hooks` 或重启 Claude Code 生效。
+五条可机械化规则建议交给 hook 执行。同步器会把同一组脚本放入 Claude Code 的 `~/.claude/hooks/` 与 Codex 的 `~/.codex/hooks/`；两端的配置文件不同，分别并入 `~/.claude/settings.json` 与 `~/.codex/hooks.json`，不要互相覆盖。Codex 修改 hook 后需在 `/hooks` 中重新审查并信任；其发现和信任规则见官方 [Hooks](https://learn.chatgpt.com/docs/hooks)。
 
 - `protect_rawdata.sh`（PreToolUse）：拦截对 `01_data/rawdata/` 原始数据的写改，直接 deny。
 - `check_r_syntax.sh`（PostToolUse）：`.R` 文件存盘即 `parse()` 语法检查，出错当场反馈给模型修。
-- `scan_ai_trace.sh`（PostToolUse）：扫文本里 emoji 与 AI 痕迹字样（AI辅助 / 机辅 / 待人工复核…）；放过 `✅`（BACKLOG 状态标记），跳过 `.claude/` 自身。
+- `scan_ai_trace.sh`（PostToolUse）：扫文本里 emoji 与 AI 痕迹字样（AI辅助 / 机辅 / 待人工复核…）；放过 `✅`（BACKLOG 状态标记），跳过 `.claude/`、`.codex/` 与 `.agents/` 配置目录。
 - `fig_selfcheck.sh`（PostToolUse / Bash）：检测 `04_figures/` 新生成或修改的图，注入 `publication-figures §12ter` 逐元素自检清单（图例不遮数据 / 比例 / 裁切 / 数值溯源 / 风格一致），逼模型 Read 图逐条判。hook 只负责"逮事件 + 强制自检"，视觉判断仍由主模型完成。
 - `check_results_rds.sh`（PostToolUse / Bash）：检测 `06_results/` 新写入的 `.rds`，提醒"表格化数据应存 `.xlsx`，`.rds` 仅限模型/ggplot/MCA 等非表格对象"。
 
@@ -79,13 +90,34 @@ cp -r ~/.claude-epiclaude/skills ~/.claude/skills
 }
 ```
 
-每个 hook 都先做轻量判断、**只在命中各自触发条件时才动作**（非目标文件类型、无 `04_figures/` / `06_results/` 目录等即刻零成本退出），平时不干扰。需 Git Bash（Windows）或 bash（macOS/Linux）；无 `jq` 也可用（脚本用环境变量 + python 兜底解析 stdin）。让 AI 据本仓库安装时，可一并据此节自动配好这几道闸。
+Codex 的 `~/.codex/hooks.json` 可使用同一脚本：
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      { "matcher": "Edit|Write|apply_patch", "hooks": [
+        { "type": "command", "command": "bash ~/.codex/hooks/protect_rawdata.sh", "timeout": 15 } ] }
+    ],
+    "PostToolUse": [
+      { "matcher": "Edit|Write|apply_patch", "hooks": [
+        { "type": "command", "command": "bash ~/.codex/hooks/check_r_syntax.sh", "timeout": 30 },
+        { "type": "command", "command": "bash ~/.codex/hooks/scan_ai_trace.sh", "timeout": 15 } ] },
+      { "matcher": "Bash", "hooks": [
+        { "type": "command", "command": "bash ~/.codex/hooks/fig_selfcheck.sh", "timeout": 20 },
+        { "type": "command", "command": "bash ~/.codex/hooks/check_results_rds.sh", "timeout": 15 } ] }
+    ]
+  }
+}
+```
+
+Windows 若 hook 进程找不到 `bash`，把命令改为 `"%USERPROFILE%\\.codex\\hooks\\run_hook.cmd" "%USERPROFILE%\\.codex\\hooks\\脚本名.sh"`。每个 hook 只在命中目标文件或目录时动作；无 `jq` 时由 Python 解析 stdin JSON。
 
 ## 设计原则
 
 本仓库的写法遵循几条经验规则，也是它区别于"把所有规范堆进 CLAUDE.md"的地方：
 
-1. **删除测试**：CLAUDE.md 每条规则都要回答"删了 Claude 会犯什么具体错误"，答不出就删。全文控制在 120 行内——指令越多，单条遵循率越低。
+1. **删除测试**：全局规则每条都要回答"删了 agent 会犯什么具体错误"，答不出就删。全文控制在 120 行内——指令越多，单条遵循率越低。
 2. **规则与流程分离**：CLAUDE.md 只放每个 session 都需要的硬红线与路由表；多步骤工作流全部下沉到技能，按需加载不占上下文。
 3. **渐进披露**：技能正文只放核心流程与门禁，模板、句式库、配方代码放 `references/`，由模型在需要时自行读取。
 4. **单一真源**：表图编号走 registry（编号 = 清单位置，脚本经 `table_path()` / `fig_path()` 取路径）；口径常量集中 `config.R` + `conventions.R`；论文数字机器单源 `07_paper/results.yaml`（脚本渲染一次写入、`render_summary_md()` 派生 `0_result_summaries.md`、下游 `val()` 取数禁手敲）。
@@ -111,7 +143,7 @@ cp -r ~/.claude-epiclaude/skills ~/.claude/skills
 
 - **面向流行病学 / 卫生统计，但不限于此**：规则与技能以流行病学、临床与真实世界数据研究为蓝本编写，其底层做法（项目分层、单一真源、门禁状态机、发表级图表、证据约束写作）是通用的研究工程实践。其他定量研究领域（基础医学、社会科学、生态、经济计量等）可直接参考，并按本领域的口径、报告规范与文献格式自行拓展、改写技能内容。
 - **项目处理流程为个人经验，按需取舍**：七层目录、脚本编号、表图 registry、交付包形态等约定，是作者在自身研究与咨询中沉淀的个人偏好，并非领域标准或唯一正确做法。认同则用，不认同的条目可直接删改，介意者请勿套用。
-- **AI 改动框架的权限较大，使用前请知情**：CLAUDE.md 授予 Claude 较大的自主整理权限——它会按规则移动 / 归档 / 重排文件、改写脚本输出路径、归并代码、调整表图编号等。这能省去大量手工整理，但也意味着会主动改动你的项目结构。建议在版本控制（git）下使用，重要数据先备份；原始数据目录 `01_data/rawdata/` 被设为只读红线，但其余目录的整理动作请在了解上述行为后再启用。
+- **Agent 改动框架的权限较大，使用前请知情**：全局规则授予 Claude Code 与 Codex 较大的自主整理权限，可能移动 / 归档 / 重排文件、改写脚本输出路径、归并代码或调整表图编号。建议在版本控制（git）下使用并先备份重要数据；`01_data/rawdata/` 是只读红线，其余自动整理行为请在了解后启用。
 
 ## 说明
 

@@ -81,7 +81,16 @@ description: |
 用 `scripts/init_project.R` 一键创建。R 里运行：
 
 ```r
-source("~/.claude/skills/project-init/scripts/init_project.R")
+skill_roots <- path.expand(c(
+  Sys.getenv("EPICLAUDE_SKILLS"),
+  "~/.claude/skills",  # Claude Code
+  "~/.agents/skills",  # Codex 官方用户目录
+  "~/.codex/skills"    # 既有 Codex 本地兼容目录
+))
+init_script <- file.path(skill_roots[nzchar(skill_roots)], "project-init/scripts/init_project.R")
+init_script <- init_script[file.exists(init_script)][1]
+if (is.na(init_script)) stop("找不到 project-init；请先安装 skills 或设置 EPICLAUDE_SKILLS")
+source(init_script)
 init_project(
   name = "cohort_smoking_chd",
   type = 1,           # 1=队列 2=病例对照 3=横断面 4=RCT 5=Meta 6=RWD 7=方法学
@@ -95,12 +104,13 @@ init_project(
 
 ## 四、模板文件内容
 
-### 4.1 `CLAUDE.md`（项目级，继承全局）
+### 4.1 `CLAUDE.md` + `AGENTS.md`（项目级，单源继承）
 
 ```markdown
 # {项目名} · 项目级规则
 
-本文件继承 `~/.claude/CLAUDE.md` 的全局 EpiClaude 规则。以下是本项目专属约束。
+本项目继承 EpiClaude 全局规则（Claude Code：`~/.claude/CLAUDE.md`；Codex：`~/.codex/AGENTS.md`）。
+`CLAUDE.md` 是项目规则单源；`AGENTS.md` 指示 Codex 开工前完整读取它，避免双份项目口径漂移。
 
 ## 新会话必读（新 agent 开局第一步，按序读完再动手）
 
@@ -113,7 +123,7 @@ init_project(
 5. `02_code/conventions.R` + `config.R` —— 口径常量真源（有序因子序 / 配色 / registry）
 6. `SESSION_LOG.md` 末 10 行 —— 上次做到哪、卡在哪
 
-**信任但验证**：涉及数字的任务，先快速核 `0_result_summaries` 关键数字 vs 最新输出文件 mtime / registry 是否对得上；对不上立即触发 `/epi-project-audit`，不盲信本文件可能已陈旧的内容。
+**信任但验证**：涉及数字的任务，先快速核 `0_result_summaries` 关键数字 vs 最新输出文件 mtime / registry 是否对得上；对不上立即触发 `epi-project-audit`，不盲信本文件可能已陈旧的内容。
 
 ## 当前状态（快照，非历史；每次会话收尾必更新，≤10 行）
 
