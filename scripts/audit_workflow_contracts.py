@@ -9,7 +9,14 @@ import sys
 import tempfile
 from pathlib import Path
 
-from sync_user_configs import SKILL_MANIFEST, mirror_tree, sync_skills
+from sync_user_configs import (
+    MANAGED_HOOK_SCRIPTS,
+    SKILL_MANIFEST,
+    hook_command,
+    mirror_tree,
+    sync_hook_config,
+    sync_skills,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -78,6 +85,8 @@ def main() -> int:
         "scripts/sync_user_configs.py": (
             "def atomic_copy_file(",
             "def mirror_tree(",
+            "def sync_hook_config(",
+            'hooks_dir / "run_hook.cmd"',
             "mirror_tree(skill, destination)",
             "include: set[str] | None",
             "prune_stale: bool = True",
@@ -155,7 +164,7 @@ def main() -> int:
                 problems.append("sync mirror self-test: read-only asset was not replaced")
             if (target / "stale.txt").exists():
                 problems.append("sync mirror self-test: stale file was not removed")
-            if list(target.rglob("*.epiclaude-*.tmp")):
+            if list(target.rglob(".epi-*.tmp")):
                 problems.append("sync mirror self-test: temporary files remain")
         except OSError as error:
             problems.append(f"sync mirror self-test failed: {error}")
@@ -196,6 +205,83 @@ def main() -> int:
                 problems.append("partial sync self-test: existing managed skill was removed")
         except OSError as error:
             problems.append(f"partial sync self-test failed: {error}")
+
+    with tempfile.TemporaryDirectory(prefix="epiclaude_hook_sync_") as directory:
+        test_root = Path(directory)
+        hooks_dir = test_root / ".claude" / "hooks"
+        config_path = test_root / ".claude" / "settings.json"
+        hooks_dir.mkdir(parents=True)
+        original = {
+            "model": "custom-model",
+            "hooks": {
+                "PostToolUse": [
+                    {
+                        "matcher": "Bash",
+                        "hooks": [
+                            {
+                                "type": "command",
+                                "command": "custom-quality-check",
+                            },
+                            {
+                                "type": "command",
+                                "command": "bash ~/.claude/hooks/fig_selfcheck.sh",
+                            },
+                        ],
+                    }
+                ]
+            },
+        }
+        config_path.write_text(
+            json.dumps(original, ensure_ascii=False), encoding="utf-8"
+        )
+        try:
+            sync_hook_config(
+                "claude", config_path, hooks_dir, dry_run=False, windows=True
+            )
+            first = json.loads(config_path.read_text(encoding="utf-8"))
+            sync_hook_config(
+                "claude", config_path, hooks_dir, dry_run=False, windows=True
+            )
+            second = json.loads(config_path.read_text(encoding="utf-8"))
+            commands = [
+                hook.get("command", "")
+                for groups in second.get("hooks", {}).values()
+                for group in groups
+                if isinstance(group, dict)
+                for hook in group.get("hooks", [])
+                if isinstance(hook, dict)
+            ]
+            managed = [
+                command
+                for command in commands
+                if any(name in command for name in MANAGED_HOOK_SCRIPTS)
+            ]
+            if first != second:
+                problems.append("hook sync self-test: repeated install is not idempotent")
+            if second.get("model") != "custom-model" or "custom-quality-check" not in commands:
+                problems.append("hook sync self-test: unrelated settings were not preserved")
+            if len(managed) != len(MANAGED_HOOK_SCRIPTS):
+                problems.append("hook sync self-test: managed hook count is incorrect")
+            if any("run_hook.cmd" not in command for command in managed):
+                problems.append("hook sync self-test: Windows hook bypasses run_hook.cmd")
+            if not config_path.with_name("settings.json.epiclaude.bak").is_file():
+                problems.append("hook sync self-test: config backup was not created")
+            if not hook_command(hooks_dir, "fig_selfcheck.sh", windows=False).startswith(
+                "bash "
+            ):
+                problems.append("hook sync self-test: POSIX command does not use bash")
+        except (OSError, ValueError) as error:
+            problems.append(f"hook sync self-test failed: {error}")
+
+    for skill_dir in (ROOT / "skills").iterdir():
+        if not skill_dir.is_dir():
+            continue
+        for directory in (item for item in skill_dir.rglob("*") if item.is_dir()):
+            if directory.parent != skill_dir and directory.name == directory.parent.name:
+                problems.append(
+                    "skill path audit: redundant repeated directory lengthens Windows path: "
+                    + str(directory.relative_to(ROOT))
+                )
 
     if problems:
         print("Workflow contract audit failed:")

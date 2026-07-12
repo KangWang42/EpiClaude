@@ -7,6 +7,7 @@ import argparse
 import filecmp
 import json
 import os
+import shlex
 import shutil
 import stat
 import uuid
@@ -18,6 +19,40 @@ HOOK_MANIFEST = ".epiclaude-managed-hooks.json"
 CODEX_EXCLUDES = {"skill-creator"}
 COPY_IGNORES = {"__pycache__", ".DS_Store"}
 VALID_COMPONENTS = {"rules", "skills", "hooks"}
+MANAGED_HOOK_SCRIPTS = {
+    "protect_rawdata.sh",
+    "check_r_syntax.sh",
+    "scan_ai_trace.sh",
+    "fig_selfcheck.sh",
+    "check_results_rds.sh",
+}
+
+HOOK_DEFINITIONS = {
+    "PreToolUse": (
+        (
+            "edit",
+            (
+                ("protect_rawdata.sh", 15, "校验 rawdata 保护"),
+            ),
+        ),
+    ),
+    "PostToolUse": (
+        (
+            "edit",
+            (
+                ("check_r_syntax.sh", 30, "R 语法检查"),
+                ("scan_ai_trace.sh", 15, "扫 emoji/AI 痕迹"),
+            ),
+        ),
+        (
+            "Bash",
+            (
+                ("fig_selfcheck.sh", 20, "检测新图并执行出图自检"),
+                ("check_results_rds.sh", 15, "检查 06_results rds"),
+            ),
+        ),
+    ),
+}
 
 
 def remove_readonly(func, path: str, _exc_info) -> None:
@@ -98,7 +133,7 @@ def atomic_copy_file(source: Path, target: Path) -> None:
     if files_equal(source, target):
         return
     target.parent.mkdir(parents=True, exist_ok=True)
-    temporary = target.with_name(f".{target.name}.epiclaude-{uuid.uuid4().hex}.tmp")
+    temporary = target.with_name(f".epi-{uuid.uuid4().hex[:8]}.tmp")
     try:
         # copy2 may inherit a read-only bit from bundled assets, which prevents
         # os.replace on Windows. Content parity matters here; timestamps do not.
@@ -109,6 +144,21 @@ def atomic_copy_file(source: Path, target: Path) -> None:
     finally:
         if temporary.exists():
             os.chmod(temporary, stat.S_IWRITE | stat.S_IREAD)
+            temporary.unlink()
+
+
+def atomic_write_json(path: Path, data: dict) -> None:
+    """Write a JSON config without exposing a partial file to the client."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(f".epi-{uuid.uuid4().hex[:8]}.tmp")
+    try:
+        temporary.write_text(
+            json.dumps(data, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        os.replace(temporary, path)
+    finally:
+        if temporary.exists():
             temporary.unlink()
 
 
@@ -220,6 +270,106 @@ def sync_hooks(source: Path, target: Path, dry_run: bool) -> None:
     write_manifest(manifest, sorted(files), dry_run)
 
 
+def hook_command(hooks_dir: Path, script: str, windows: bool | None = None) -> str:
+    """Return a hook command that works even when bash is absent from PATH."""
+    windows = os.name == "nt" if windows is None else windows
+    script_path = hooks_dir / script
+    if windows:
+        wrapper = (hooks_dir / "run_hook.cmd").as_posix()
+        return f'"{wrapper}" "{script_path.as_posix()}"'
+    return f"bash {shlex.quote(str(script_path))}"
+
+
+def hook_groups(
+    platform: str, hooks_dir: Path, windows: bool | None = None
+) -> dict[str, list[dict]]:
+    edit_matcher = (
+        "Write|Edit|MultiEdit" if platform == "claude" else "Edit|Write|apply_patch"
+    )
+    groups: dict[str, list[dict]] = {}
+    for event, definitions in HOOK_DEFINITIONS.items():
+        groups[event] = []
+        for matcher, scripts in definitions:
+            groups[event].append(
+                {
+                    "matcher": edit_matcher if matcher == "edit" else matcher,
+                    "hooks": [
+                        {
+                            "type": "command",
+                            "command": hook_command(hooks_dir, script, windows),
+                            "timeout": timeout,
+                            "statusMessage": status,
+                        }
+                        for script, timeout, status in scripts
+                    ],
+                }
+            )
+    return groups
+
+
+def remove_managed_hook_commands(config: dict) -> None:
+    """Remove prior EpiClaude hook commands while preserving unrelated hooks."""
+    hooks = config.setdefault("hooks", {})
+    if not isinstance(hooks, dict):
+        raise ValueError("Existing 'hooks' setting must be a JSON object")
+    for event, groups in tuple(hooks.items()):
+        if not isinstance(groups, list):
+            continue
+        retained_groups = []
+        for group in groups:
+            if not isinstance(group, dict) or not isinstance(group.get("hooks"), list):
+                retained_groups.append(group)
+                continue
+            retained_commands = []
+            for item in group["hooks"]:
+                command = item.get("command", "") if isinstance(item, dict) else ""
+                if not any(name in str(command) for name in MANAGED_HOOK_SCRIPTS):
+                    retained_commands.append(item)
+            if retained_commands:
+                preserved = dict(group)
+                preserved["hooks"] = retained_commands
+                retained_groups.append(preserved)
+        hooks[event] = retained_groups
+
+
+def sync_hook_config(
+    platform: str,
+    config_path: Path,
+    hooks_dir: Path,
+    dry_run: bool,
+    windows: bool | None = None,
+) -> None:
+    """Merge EpiClaude hooks into a client config without touching other settings."""
+    if config_path.exists():
+        try:
+            current = json.loads(config_path.read_text(encoding="utf-8-sig"))
+        except (json.JSONDecodeError, UnicodeDecodeError) as error:
+            raise ValueError(f"Cannot update invalid JSON config {config_path}: {error}") from error
+        if not isinstance(current, dict):
+            raise ValueError(f"Config root must be a JSON object: {config_path}")
+    else:
+        current = {}
+
+    updated = json.loads(json.dumps(current))
+    remove_managed_hook_commands(updated)
+    generated = hook_groups(platform, hooks_dir, windows)
+    hooks = updated.setdefault("hooks", {})
+    for event, groups in generated.items():
+        hooks.setdefault(event, []).extend(groups)
+
+    if updated == current:
+        print(f"SKIP   {config_path} (hook config unchanged)")
+        return
+    print(f"MERGE  EpiClaude hooks -> {config_path}")
+    if dry_run:
+        return
+    if config_path.exists():
+        backup = config_path.with_name(f"{config_path.name}.epiclaude.bak")
+        print(f"BACKUP {config_path} -> {backup}")
+        atomic_copy_file(config_path, backup)
+    atomic_write_json(config_path, updated)
+
+
 def csv_values(values: list[str] | None) -> set[str] | None:
     if not values:
         return None
@@ -299,6 +449,12 @@ def main() -> None:
             )
         if "hooks" in components:
             sync_hooks(root / "hooks", claude_home / "hooks", args.dry_run)
+            sync_hook_config(
+                "claude",
+                claude_home / "settings.json",
+                claude_home / "hooks",
+                args.dry_run,
+            )
 
     if args.target in {"all", "codex"}:
         print("\n[Codex]")
@@ -317,6 +473,12 @@ def main() -> None:
             )
         if "hooks" in components:
             sync_hooks(root / "hooks", codex_home / "hooks", args.dry_run)
+            sync_hook_config(
+                "codex",
+                codex_home / "hooks.json",
+                codex_home / "hooks",
+                args.dry_run,
+            )
 
     print("\nSync complete. Restart the client if changed skills are not visible.")
 

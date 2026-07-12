@@ -223,6 +223,8 @@ def main() -> int:
     print(f"- 组件：{', '.join(sorted(components))}")
     print(f"- Skills：{'全部' if skills is None else ', '.join(sorted(skills))}")
     print("- 行为：覆盖同名 EpiClaude 文件，保留无关个人配置")
+    if "hooks" in components:
+        print("- Hooks：复制脚本并合并客户端配置；Windows 自动使用 Git Bash 启动器")
 
     if not args.yes:
         if not sys.stdin.isatty():
@@ -258,7 +260,7 @@ def main() -> int:
     if args.dry_run:
         print("演练完成，未写入用户配置。")
     else:
-        print("配置完成。若客户端未识别新 skills，请重启对应客户端。")
+        print("配置完成。若客户端未识别新 skills 或 hooks，请重启对应客户端。")
     return 0
 
 

@@ -94,7 +94,7 @@ python scripts/audit_workflow_contracts.py
 
 ## 推荐 Hook 配置（可选，把硬红线交给 harness 强制）
 
-五条可机械化规则建议交给 hook 执行。同步器会把同一组脚本放入 Claude Code 的 `~/.claude/hooks/` 与 Codex 的 `~/.codex/hooks/`；两端的配置文件不同，分别并入 `~/.claude/settings.json` 与 `~/.codex/hooks.json`，不要互相覆盖。Codex 修改 hook 后需在 `/hooks` 中重新审查并信任；其发现和信任规则见官方 [Hooks](https://learn.chatgpt.com/docs/hooks)。
+五条可机械化规则建议交给 hook 执行。同步器会复制脚本并自动合并配置：Claude Code 写入 `~/.claude/settings.json`，Codex 写入 `~/.codex/hooks.json`，不会覆盖模型、权限或其他自定义 hook。修改前会在同目录保留稳定的 `.epiclaude.bak` 配置备份。Codex 修改 hook 后需在 `/hooks` 中重新审查并信任；其发现和信任规则见官方 [Hooks](https://learn.chatgpt.com/docs/hooks)。
 
 - `protect_rawdata.sh`（PreToolUse）：拦截对 `01_data/rawdata/` 原始数据的写改，直接 deny。
 - `check_r_syntax.sh`（PostToolUse）：`.R` 文件存盘即 `parse()` 语法检查，出错当场反馈给模型修。
@@ -104,47 +104,17 @@ python scripts/audit_workflow_contracts.py
 
 （"多行 `Rscript -e` 会 segfault、须写成 `.R` 文件运行"这条已直接写进 `CLAUDE.md` 的代码必跑红线，常驻每会话上下文，无需单设 hook。）
 
-```json
-{
-  "hooks": {
-    "PreToolUse": [
-      { "matcher": "Write|Edit|MultiEdit", "hooks": [
-        { "type": "command", "command": "bash ~/.claude/hooks/protect_rawdata.sh", "timeout": 15 } ] }
-    ],
-    "PostToolUse": [
-      { "matcher": "Write|Edit|MultiEdit", "hooks": [
-        { "type": "command", "command": "bash ~/.claude/hooks/check_r_syntax.sh", "timeout": 30 },
-        { "type": "command", "command": "bash ~/.claude/hooks/scan_ai_trace.sh", "timeout": 15 } ] },
-      { "matcher": "Bash", "hooks": [
-        { "type": "command", "command": "bash ~/.claude/hooks/fig_selfcheck.sh", "timeout": 20 },
-        { "type": "command", "command": "bash ~/.claude/hooks/check_results_rds.sh", "timeout": 15 } ] }
-    ]
-  }
-}
+安装或修复 hook：
+
+```bash
+# 仅安装并注册 hooks
+python scripts/sync_user_configs.py --target all --components hooks
+
+# 安装 PPT 技能包并同时注册 hooks
+python scripts/configure_user.py --target all --preset ppt --with-hooks --yes
 ```
 
-Codex 的 `~/.codex/hooks.json` 可使用同一脚本：
-
-```json
-{
-  "hooks": {
-    "PreToolUse": [
-      { "matcher": "Edit|Write|apply_patch", "hooks": [
-        { "type": "command", "command": "bash ~/.codex/hooks/protect_rawdata.sh", "timeout": 15 } ] }
-    ],
-    "PostToolUse": [
-      { "matcher": "Edit|Write|apply_patch", "hooks": [
-        { "type": "command", "command": "bash ~/.codex/hooks/check_r_syntax.sh", "timeout": 30 },
-        { "type": "command", "command": "bash ~/.codex/hooks/scan_ai_trace.sh", "timeout": 15 } ] },
-      { "matcher": "Bash", "hooks": [
-        { "type": "command", "command": "bash ~/.codex/hooks/fig_selfcheck.sh", "timeout": 20 },
-        { "type": "command", "command": "bash ~/.codex/hooks/check_results_rds.sh", "timeout": 15 } ] }
-    ]
-  }
-}
-```
-
-Windows 若 hook 进程找不到 `bash`，把命令改为 `"%USERPROFILE%\\.codex\\hooks\\run_hook.cmd" "%USERPROFILE%\\.codex\\hooks\\脚本名.sh"`。每个 hook 只在命中目标文件或目录时动作；无 `jq` 时由 Python 解析 stdin JSON。
+Windows 配置由同步器统一通过 `run_hook.cmd` 定位 Git Bash，不依赖 hook 进程的 `PATH`；macOS / Linux 使用 `bash`。再次执行会替换旧的 EpiClaude hook 命令并保持幂等，不会重复注册。每个 hook 只在命中目标文件或目录时动作；无 `jq` 时由 Python 解析 stdin JSON。
 
 ## 设计原则
 
