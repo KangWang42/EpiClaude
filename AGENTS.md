@@ -27,7 +27,7 @@ There is no central coverage target or test tree. Use validators, syntax checks,
 
 ## Commit & Pull Request Guidelines
 
-Use Conventional Commits: `feat(scope): summary`, `fix(scope): summary`, `docs(scope): summary`, or `refactor(scope): summary`. When authorized, review the entire worktree, commit every validated change, and leave none pending. Pull requests must explain the problem, affected skills or hooks, verification commands, and compatibility effects. Link issues; include screenshots only for visual or document output.
+Use Conventional Commits: `feat(scope): summary`, `fix(scope): summary`, `docs(scope): summary`, or `refactor(scope): summary`. Make each commit one coherent, reversible unit; use a specific scope and action-object summary, and add a body covering motivation, key behavior, validation, and compatibility for non-trivial changes. After a completed request passes validation, the standing preference is to commit and normally push the current branch without asking again; never force-push or rewrite remote history. Review the entire worktree and do not sweep unexplained pre-existing changes into the commit. Pull requests must explain the problem, affected skills or hooks, verification commands, and compatibility effects. Link issues; include screenshots only for visual or document output.
 
 ## Agent-Specific Instructions
 

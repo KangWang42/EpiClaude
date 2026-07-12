@@ -259,6 +259,18 @@ init_project <- function(name,
     file.path(proj, "09_backup/EXPERIMENTS.md"), useBytes = TRUE
   )
 
+  # 版本归档总索引：工作区只留当前版，旧版按批次可检索 ----
+  writeLines(
+    c("# 版本归档索引",
+      "",
+      "工作区只保留稳定命名的当前版；被替代的报告、PPT、论文、代码、素材与核验输出按同一批次归档。",
+      "每个批次目录使用 `YYYY-MM-DD_HHMM_<主题>_<阶段>`，保留原相对目录并写 `MANIFEST.md`。新记录加在表格顶部。",
+      "",
+      "| 归档时间 | 主题 | 类型 | 归档目录 | 当前版路径 | 原因 |",
+      "|----------|------|------|----------|------------|------|"),
+    file.path(proj, "09_backup/INDEX.md"), useBytes = TRUE
+  )
+
   # BACKLOG.md --------------------------------------------
   writeLines(
     c("# BACKLOG · 待补清单",
@@ -310,10 +322,10 @@ init_project <- function(name,
       "05_reports/    # 结果分享包",
       "06_results/    # 中间产物",
       "07_paper/      # 论文稿 + 结果汇总",
-      "09_backup/     # 归档",
+      "09_backup/     # INDEX.md + 分批归档",
       "```",
       "",
-      "研究方案见 `PROTOCOL.md`，预设统计分析见 `SAP.md`；缺口统一记入 `BACKLOG.md`，全部探索尝试登记于 `09_backup/EXPERIMENTS.md`。",
+      "研究方案见 `PROTOCOL.md`，预设统计分析见 `SAP.md`；缺口统一记入 `BACKLOG.md`，旧版批次登记于 `09_backup/INDEX.md`，全部探索尝试登记于 `09_backup/EXPERIMENTS.md`。",
       "",
       "## 快速开始",
       "",
@@ -559,7 +571,7 @@ init_project <- function(name,
   message("  2. 把原始数据放入 ", file.path(name, "01_data/rawdata/"), " 并填写数据字典")
   message("  3. 同步口径：打开 ", file.path(name, "CLAUDE.md"))
   message("  4. 开始清洗：", file.path(name, "02_code/01_data_cleaning.R"))
-  if (git) message("Git 已初始化；首次 commit 须在完整检查后征询用户确认。")
+  if (git) message("Git 已初始化；完成初始化与验证后按全局偏好 commit，有远端才正常 push。")
 
   invisible(proj)
 }

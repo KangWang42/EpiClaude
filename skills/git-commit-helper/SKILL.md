@@ -1,6 +1,6 @@
 ---
 name: git-commit-helper
-description: Generate descriptive commit messages by analyzing git diffs. Use when the user asks for help writing commit messages or reviewing staged changes.
+description: Generate clear, reviewable Conventional Commit messages by analyzing complete git diffs, validation evidence, compatibility effects, and rollback context. Use when the user asks to write commit messages, review staged changes, commit completed work, push changes, or improve repository history quality.
 ---
 
 # Git Commit Helper
@@ -38,6 +38,20 @@ Follow conventional commits format:
 - **refactor**: Code refactoring
 - **test**: Adding or updating tests
 - **chore**: Maintenance tasks
+
+## Reviewable history contract
+
+Write each commit so a future reader can understand the completed unit without opening every diff:
+
+1. Make one commit represent one coherent user request or independently reversible change. Split unrelated changes; do not split tightly coupled rule, helper, template, and test updates.
+2. Use a specific scope and an imperative summary naming both action and object. Avoid vague summaries such as `update files`, `changes`, `完善一下`, or `misc fixes`.
+3. For any non-trivial or multi-file change, include a body with:
+   - why the change was needed;
+   - the key behavioral changes;
+   - validation commands and results;
+   - compatibility, migration, or rollback implications when present.
+4. Review the complete worktree and staged diff before committing. Do not mix unexplained pre-existing changes into the commit.
+5. When the user's standing policy authorizes commit and push after validation, commit and push without asking again. Never force-push. Stop and report if the remote is ahead, the push is rejected, or history would need rewriting.
 
 ### Examples
 
@@ -89,10 +103,9 @@ git diff --staged path/to/file
 
 **DO:**
 - Use imperative mood ("add feature" not "added feature")
-- Keep first line under 50 characters
-- Capitalize first letter
+- Keep the first line under 72 characters; prefer under 50 when it remains specific
 - No period at end of summary
-- Explain WHY not just WHAT in body
+- Explain WHY, key impact, and validation in the body
 
 **DON'T:**
 - Use vague messages like "update" or "fix stuff"
@@ -149,12 +162,14 @@ Migration guide: Update client code to handle new response structure
 
 ## Template workflow
 
-1. **Review changes**: `git diff --staged`
-2. **Identify type**: Is it feat, fix, refactor, etc.?
-3. **Determine scope**: What part of the codebase?
-4. **Write summary**: Brief, imperative description
-5. **Add body**: Explain why and what impact
-6. **Note breaking changes**: If applicable
+1. **Review worktree**: `git status --short`, `git diff`, and `git diff --staged`
+2. **Confirm validation**: Record the commands run and their outcomes
+3. **Identify type**: Is it feat, fix, refactor, docs, etc.?
+4. **Determine scope**: What coherent subsystem changed?
+5. **Write summary**: Specific imperative action + object
+6. **Add body**: Motivation, key changes, validation, compatibility / rollback
+7. **Note breaking changes**: If applicable
+8. **Push safely when authorized**: Verify branch and remote divergence, then normal push; never force
 
 ## Interactive commit helper
 
@@ -196,8 +211,10 @@ git commit --amend --no-edit
 
 - [ ] Type is appropriate (feat/fix/docs/etc.)
 - [ ] Scope is specific and clear
-- [ ] Summary is under 50 characters
+- [ ] Summary is under 72 characters and as concise as specificity allows
 - [ ] Summary uses imperative mood
-- [ ] Body explains WHY not just WHAT
+- [ ] Body explains WHY, key behavior, and validation for non-trivial changes
 - [ ] Breaking changes are clearly marked
 - [ ] Related issue numbers are included
+- [ ] Commit contains one coherent, reversible unit
+- [ ] Push is a normal fast-forward update; no force push

@@ -134,6 +134,7 @@ Windows 若 hook 进程找不到 `bash`，把命令改为 `"%USERPROFILE%\\.code
 5. **门禁状态机**：分析（PLAN-CODE-RUN-VERIFY-DOC）、写作（逐部件自检）、交付（八阶段）、审查（六层）都是"不过检不许进下一步"的状态机，而非建议清单。
 6. **强制实跑与全量扫错**：代码写完必须实际执行，输出全量 grep error / warning，每条报错三选一去向（修复 / 记录豁免 / 核实可忽略），不允许沉默放过。
 7. **预设与探索分轨**：`PROTOCOL.md` / `SAP.md` 在分析前冻结主要问题和方法；全部尝试登记在 `09_backup/EXPERIMENTS.md` 并隔离运行，只有过公平比较门禁且经确认的结果进入主线。
+8. **当前版单一、旧版可检索**：工作区每种报告、PPT、论文和代码只留稳定命名的当前版；被替代的成品、对应源文件、素材与核验输出按批次移入 `09_backup/YYYY-MM-DD_HHMM_<主题>_<阶段>/`，以 `MANIFEST.md` 和 `09_backup/INDEX.md` 定位历史，不再堆叠“完善版 / 最终版 / v2”。
 
 ## 目录约定
 
@@ -148,7 +149,7 @@ PROTOCOL.md / SAP.md 研究方案与预设统计分析计划
 05_reports/        对外交付包
 06_results/        中间对象（按内容命名不编号）
 07_paper/          论文 + results.yaml（数字机器单源）+ 0_result_summaries.md（由其派生）
-09_backup/         旧版 / 一次性脚本 / 探索实验（EXPERIMENTS.md 索引全部尝试）
+09_backup/         INDEX.md + 分批旧版 / 一次性脚本 / 探索实验（EXPERIMENTS.md 索引全部尝试）
 ```
 
 ## 适用范围与使用须知

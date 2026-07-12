@@ -70,6 +70,7 @@ description: |
 │   ├── results.yaml
 │   └── 0_result_summaries.md
 └── 09_backup/
+    ├── INDEX.md            # 旧交付物 / 旧代码批次索引
     └── EXPERIMENTS.md      # 全部探索尝试索引，含失败/未采用结果
 ```
 
@@ -396,10 +397,11 @@ LineEndingConversion: Posix
   - CLAUDE.md / AGENTS.md / PROTOCOL.md / SAP.md / 日志与待补清单就绪
   - config.R / conventions.R / vendored helpers 与空 registry 就绪
   - 探索实验索引 09_backup/EXPERIMENTS.md 就绪
+  - 版本归档索引 09_backup/INDEX.md 就绪
   - 数据字典模板已生成
   - 清洗脚本模板已生成 (02_code/01_data_cleaning.R)
   - .gitignore 已配置（原始数据不入 git）
-  - Git 仓库已初始化；首次提交等待用户确认
+  - Git 仓库已初始化；完整请求验证通过后按全局偏好自动 commit + push
   - [咨询模式] 交付包骨架已预建：05_reports/结果-{今日}/
   
 下一步：
@@ -426,8 +428,8 @@ LineEndingConversion: Posix
 | 场景 | 处理 |
 |------|------|
 | 用户给了中文项目名 | 建议改 snake_case，但尊重用户决定；中文名要警示 shell 转义问题 |
-| 目录已存在 | 停下来问，不覆盖；默认建议加 `_v2` 后缀 |
-| 不在 git 仓库但用户要启 git | 只执行 `git init`；完整检查后先征询用户，获准才首次 commit |
+| 目录已存在 | 停下来问是继续现有项目、改名还是另选目录；不得默认追加 `_v2` 制造并列版本 |
+| 不在 git 仓库但用户要启 git | 执行 `git init`；完成初始化与验证后按全局偏好自动首次 commit，有远端才正常 push |
 | 想试多个模型或参数 | 先登记 `09_backup/EXPERIMENTS.md` 并隔离运行；不得直接改主流程或只保留最好结果 |
 | 咨询模式没指定主题 | 用 `主题占位`，在 `00_客户说明.md` 里提示用户改 |
 | 用户说"要不要用 renv" | 默认 **否**；除非用户明确要求，renv 对小咨询任务反而拖累速度 |

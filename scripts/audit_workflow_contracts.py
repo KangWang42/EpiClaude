@@ -48,6 +48,7 @@ def main() -> int:
             '"PROTOCOL.md"',
             '"SAP.md"',
             '"09_backup/EXPERIMENTS.md"',
+            '"09_backup/INDEX.md"',
             '"02_code/config.R"',
             '"02_code/conventions.R"',
             '"02_code/vendored"',
@@ -62,6 +63,11 @@ def main() -> int:
             "09_backup/EXPERIMENTS.md",
             "PLAN.md",
             "FINDINGS.md",
+        ),
+        "skills/consulting-delivery/SKILL.md": (
+            "09_backup/INDEX.md",
+            "MANIFEST.md",
+            "唯一当前交付包",
         ),
         "skills/consulting-delivery/scripts/consulting_scaffold.R": (
             'subdirs <- c("data", "code", "results", "tables", "figures")',
@@ -95,6 +101,10 @@ def main() -> int:
         ),
         "skills/consulting-delivery/references/templates.md": (
             'write_xlsx(tbl, "tables/Table1',
+        ),
+        "skills/consulting-delivery/SKILL.md": (
+            "每个新版本用新日期建新包",
+            "旧包移 `09_backup/` 或保留原位",
         ),
         "scripts/sync_user_configs.py": (
             "safe_remove(destination, target, dry_run)",

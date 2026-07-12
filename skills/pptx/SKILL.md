@@ -16,6 +16,15 @@ license: Proprietary. LICENSE.txt has complete terms
 
 ---
 
+## Output Version Hygiene
+
+- Keep exactly one current presentation with a stable semantic filename. Do not create sibling files named `v2`, `final`, `new`, `完善版`, `最终版`, or similar.
+- Before replacing a presentation, move the superseded `.pptx`, its matching source, rendered slide images, and version-specific assets together under `09_backup/YYYY-MM-DD_HHMM_<topic>_<stage>/`, preserving their relative paths.
+- Add a `MANIFEST.md` to the snapshot and prepend its location, current successor, and reason to `09_backup/INDEX.md`. Keep only the current source and output in the active workspace.
+- Make the generator write the stable current filename on every run. If two plausible current versions exist, ask the user which one is authoritative before archiving.
+
+---
+
 ## Reading Content
 
 ```bash

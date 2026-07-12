@@ -1,2 +1,8 @@
 # Shell 脚本强制 LF 行尾，否则 Windows 克隆出 CRLF 会让 bash 报 $'\r' 错误。
 *.sh text eol=lf
+
+# 规则、技能与脚本跨 Claude/Codex 同步，统一 LF，避免 Windows autocrlf 制造整文件 diff。
+.gitattributes text eol=lf
+*.md text eol=lf
+*.py text eol=lf
+*.R text eol=lf
