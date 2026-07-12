@@ -18,7 +18,7 @@ if [ -n "$flag" ]; then
     echo "检测到 06_results/ 新写入 .rds："
     printf '%s' "$flag" | sed '/^$/d;s/^/  · /'
     echo "→ 仅非表格对象（拟合模型 / ggplot / MCA 等）可用 rds；**表格化数据必须存 .xlsx**（writexl::write_xlsx）。若上述是表格，请改存 xlsx。"
-  } >&2
-  exit 2
+  } | python "$(dirname "$0")/_emit_notice.py"
+  exit $?
 fi
 exit 0

@@ -33,7 +33,7 @@ if [ -n "$new" ]; then
     echo "③ 每个元素清晰可读（嵌入尺寸下字号够大）"
     echo "④ 数值可溯源不硬编码、与 results.yaml 一致；无统计假象（全同值/恒 ±0.707 等）"
     echo "⑤ 图型匹配数据、与同篇其它图 theme/配色/布局一致、多结局不漏"
-  } >&2
-  exit 2
+  } | python "$(dirname "$0")/_emit_notice.py"
+  exit $?
 fi
 exit 0

@@ -114,7 +114,7 @@ python scripts/sync_user_configs.py --target all --components hooks
 python scripts/configure_user.py --target all --preset ppt --with-hooks --yes
 ```
 
-Windows 配置由同步器统一通过 `run_hook.cmd` 定位 Git Bash，不依赖 hook 进程的 `PATH`；macOS / Linux 使用 `bash`。再次执行会替换旧的 EpiClaude hook 命令并保持幂等，不会重复注册。每个 hook 只在命中目标文件或目录时动作；无 `jq` 时由 Python 解析 stdin JSON。
+Windows 配置由同步器统一通过 `run_hook.cmd` 定位 Git Bash，不依赖 hook 进程的 `PATH`；macOS / Linux 使用 `bash`。再次执行会替换旧的 EpiClaude hook 命令并保持幂等，不会重复注册。图件与 `.rds` 检查属于非阻断提醒：Claude 通过 `additionalContext`、Codex 通过 `systemMessage` 接收，并以退出码 0 完成，不会显示为 hook failed；真正违反 rawdata 保护或代码门禁时仍返回阻断状态。每个 hook 只在命中目标文件或目录时动作；无 `jq` 时由 Python 解析 stdin JSON。
 
 ## 设计原则
 

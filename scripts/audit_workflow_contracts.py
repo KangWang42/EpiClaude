@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -91,6 +92,13 @@ def main() -> int:
             "include: set[str] | None",
             "prune_stale: bool = True",
         ),
+        "hooks/_emit_notice.py": (
+            '"hookEventName": "PostToolUse"',
+            '"additionalContext": message',
+            '"systemMessage": message',
+        ),
+        "hooks/fig_selfcheck.sh": ('_emit_notice.py"',),
+        "hooks/check_results_rds.sh": ('_emit_notice.py"',),
         "skills/svg-diagrams/SKILL.md": (
             "序号与标题第一行垂直居中对齐",
             "包含关系图",
@@ -264,14 +272,36 @@ def main() -> int:
                 problems.append("hook sync self-test: managed hook count is incorrect")
             if any("run_hook.cmd" not in command for command in managed):
                 problems.append("hook sync self-test: Windows hook bypasses run_hook.cmd")
+            if any('"claude"' not in command for command in managed):
+                problems.append("hook sync self-test: client identity is not forwarded")
             if not config_path.with_name("settings.json.epiclaude.bak").is_file():
                 problems.append("hook sync self-test: config backup was not created")
             if not hook_command(hooks_dir, "fig_selfcheck.sh", windows=False).startswith(
-                "bash "
+                "EPICLAUDE_HOOK_CLIENT=claude bash "
             ):
                 problems.append("hook sync self-test: POSIX command does not use bash")
         except (OSError, ValueError) as error:
             problems.append(f"hook sync self-test failed: {error}")
+
+    notice_helper = ROOT / "hooks" / "_emit_notice.py"
+    for client, expected_key in (("claude", "hookSpecificOutput"), ("codex", "systemMessage")):
+        environment = os.environ.copy()
+        environment["EPICLAUDE_HOOK_CLIENT"] = client
+        result = subprocess.run(
+            [sys.executable, str(notice_helper)],
+            input="quality reminder",
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            env=environment,
+        )
+        try:
+            payload = json.loads(result.stdout)
+        except json.JSONDecodeError:
+            payload = {}
+        if result.returncode or expected_key not in payload:
+            problems.append(f"hook notice self-test: invalid {client} success payload")
 
     for skill_dir in (ROOT / "skills").iterdir():
         if not skill_dir.is_dir():
@@ -282,6 +312,10 @@ def main() -> int:
                     "skill path audit: redundant repeated directory lengthens Windows path: "
                     + str(directory.relative_to(ROOT))
                 )
+
+    cmd_bytes = (ROOT / "hooks" / "run_hook.cmd").read_bytes()
+    if b"\r\n" not in cmd_bytes or b"\n" in cmd_bytes.replace(b"\r\n", b""):
+        problems.append("hook path audit: run_hook.cmd must use CRLF line endings")
 
     if problems:
         print("Workflow contract audit failed:")

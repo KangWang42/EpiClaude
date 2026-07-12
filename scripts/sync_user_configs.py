@@ -270,14 +270,19 @@ def sync_hooks(source: Path, target: Path, dry_run: bool) -> None:
     write_manifest(manifest, sorted(files), dry_run)
 
 
-def hook_command(hooks_dir: Path, script: str, windows: bool | None = None) -> str:
+def hook_command(
+    hooks_dir: Path,
+    script: str,
+    client: str = "claude",
+    windows: bool | None = None,
+) -> str:
     """Return a hook command that works even when bash is absent from PATH."""
     windows = os.name == "nt" if windows is None else windows
     script_path = hooks_dir / script
     if windows:
         wrapper = (hooks_dir / "run_hook.cmd").as_posix()
-        return f'"{wrapper}" "{script_path.as_posix()}"'
-    return f"bash {shlex.quote(str(script_path))}"
+        return f'"{wrapper}" "{script_path.as_posix()}" "{client}"'
+    return f"EPICLAUDE_HOOK_CLIENT={shlex.quote(client)} bash {shlex.quote(str(script_path))}"
 
 
 def hook_groups(
@@ -296,7 +301,9 @@ def hook_groups(
                     "hooks": [
                         {
                             "type": "command",
-                            "command": hook_command(hooks_dir, script, windows),
+                            "command": hook_command(
+                                hooks_dir, script, client=platform, windows=windows
+                            ),
                             "timeout": timeout,
                             "statusMessage": status,
                         }
