@@ -272,6 +272,8 @@ def main() -> int:
                 problems.append("hook sync self-test: managed hook count is incorrect")
             if any("run_hook.cmd" not in command for command in managed):
                 problems.append("hook sync self-test: Windows hook bypasses run_hook.cmd")
+            if any(not command.startswith("cmd.exe /d /s /c call ") for command in managed):
+                problems.append("hook sync self-test: Windows hook is shell-dependent")
             if any('"claude"' not in command for command in managed):
                 problems.append("hook sync self-test: client identity is not forwarded")
             if not config_path.with_name("settings.json.epiclaude.bak").is_file():

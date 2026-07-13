@@ -281,7 +281,10 @@ def hook_command(
     script_path = hooks_dir / script
     if windows:
         wrapper = (hooks_dir / "run_hook.cmd").as_posix()
-        return f'"{wrapper}" "{script_path.as_posix()}" "{client}"'
+        return (
+            f'cmd.exe /d /s /c call "{wrapper}" '
+            f'"{script_path.as_posix()}" "{client}"'
+        )
     return f"EPICLAUDE_HOOK_CLIENT={shlex.quote(client)} bash {shlex.quote(str(script_path))}"
 
 
