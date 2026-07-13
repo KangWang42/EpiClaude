@@ -26,6 +26,7 @@ PRESETS = {
     },
     "writing": {
         "biostat-principles",
+        "evidence-research",
         "academic-humanizer",
         "academic-publishing",
         "report-writing",
@@ -36,12 +37,15 @@ PRESETS = {
     },
     "analysis": {
         "biostat-principles",
+        "evidence-research",
         "r-biostats",
         "publication-figures",
         "xlsx",
     },
 }
 
+# Installation-time bundle closure only. This does not require the listed
+# skills to co-trigger at runtime; runtime routing is defined by descriptions.
 DEPENDENCIES = {
     "academic-publishing": {
         "biostat-principles",
@@ -67,6 +71,12 @@ DEPENDENCIES = {
     "sysu-ppt": {"publication-figures", "svg-diagrams", "pptx"},
 }
 
+CODEX_COMPATIBILITY_WARNING = (
+    "WARNING: --codex-layout codex/both is a compatibility mode. "
+    "The default Codex custom-skill root is ~/.agents/skills; "
+    "compatibility layouts can expose duplicate skills."
+)
+
 
 def available_skills(root: Path) -> list[str]:
     return sorted(
@@ -84,6 +94,7 @@ def csv_values(values: list[str] | None) -> set[str]:
 
 
 def expand_dependencies(selected: set[str]) -> set[str]:
+    """Expand installer bundles without imposing runtime skill composition."""
     expanded = set(selected)
     changed = True
     while changed:
@@ -128,7 +139,7 @@ def resolve_codex_skill_dirs(
     explicit: list[Path] | None = None,
     layout: str = "auto",
 ) -> list[Path]:
-    """Resolve official and compatibility Codex skill homes without guessing silently."""
+    """Resolve Codex skill homes; auto always selects the official custom-skill root."""
     if explicit:
         return unique_paths(explicit)
 
@@ -143,18 +154,4 @@ def resolve_codex_skill_dirs(
     if layout != "auto":
         raise ValueError(f"Unknown Codex skill layout: {layout}")
 
-    targets = [official]
-    managed_compatibility = (
-        active_manifest(
-            compatibility, SKILL_MANIFEST, LEGACY_SKILL_MANIFEST
-        ).is_file()
-        or (
-            active_manifest(
-                codex_home, INSTALL_MANIFEST, LEGACY_INSTALL_MANIFEST
-            ).is_file()
-            and compatibility.is_dir()
-        )
-    )
-    if managed_compatibility:
-        targets.append(compatibility)
-    return unique_paths(targets)
+    return unique_paths([official])

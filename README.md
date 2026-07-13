@@ -16,13 +16,15 @@ scripts/           双平台安装、同步与验收工具
 
 ## 技能架构
 
-技能按依赖关系分五层，上游约束下游：
+技能按职责分层；安装预设中的依赖只决定安装闭包，不表示运行时必须同时调用：
 
 | 层 | 技能 | 作用 |
 |---|---|---|
 | 原则层 | `biostat-principles` | 六条底层行为原则（先问口径、最小实现、只改必要、可验证、可追溯、可复现）+ 探索新方法的隔离试验工作流。所有分析类任务开工前先对齐 |
+| 证据层 | `evidence-research` | 文献检索、来源核验、证据矩阵与跨领域适用性判断；不代跑模型或代写论文正文 |
 | 执行层 | `project-init` | 一键创建标准项目结构、PROTOCOL/SAP 前置门禁、探索实验索引与表图 registry（研究 / 咨询双模式） |
 | | `r-biostats` | R 统计分析执行层：PLAN-CODE-RUN-VERIFY-DOC 五阶状态机，描述统计 / 回归 / 生存 / 中介 / Meta |
+| | `python-ecg-analysis` | 通用 Python ECG 预处理、质量控制、纵向对齐、临床结局连接与患者级建模门禁 |
 | | `publication-figures` | 发表级图件规范（mm 尺寸 / 字体嵌入 / 期刊配色）+ 约 180 种图选型画廊 + 170 余套配方代码 |
 | | `svg-diagrams` | 论文、报告与 PPT 的 SVG 原生流程图、结构图、技术路线、包含关系图和机制示意，含对齐、比例与载体适配规范 |
 | 产出层 | `academic-publishing` | 中英双语论文生成（GB/T 7713 / IMRaD）+ 投稿材料（Cover Letter / 审稿回复 / Highlights），逐部件门控写作 |
@@ -31,6 +33,8 @@ scripts/           双平台安装、同步与验收工具
 | 质控层 | `academic-humanizer` | 中英文学术文本的事实锁、论断证据、作者声纹与学术语体审校 |
 | | `epi-project-audit` | 六层项目审查状态机：骨架 / 数据链 / 代码 / 结果一致性 / 科学合理性 / 交付一致性，带数字一致性矩阵 |
 | 工具层 | `docx` `pdf` `pptx` `xlsx` `skill-creator` `git-commit-helper` | 文档处理与技能维护（前五个源自 Anthropic 官方技能库，保留各自 LICENSE） |
+
+组合路由遵循“内容主流程 → 实际文件操作 → 终审”：论文从零生成用 `academic-publishing → academic-humanizer`，需要 Word 时再加 `docx`；已有学术文本编辑以 `academic-humanizer` 为主；报告用 `report-writing → docx`；中大学术汇报用 `sysu-ppt → pptx`；统计分析用 `biostat-principles → r-biostats`，仅实际出图时加 `publication-figures`。`consulting-delivery` 仅用于分析完成后的最终外发打包。
 
 ## 双平台兼容
 
@@ -81,7 +85,15 @@ python ~/epiagentkit/scripts/epiagentkit.py sync --target codex \
   --components skills --skills sysu-ppt,svg-diagrams
 ```
 
-只安装一个平台时用 `--target claude` 或 `--target codex`。`--components` 可选 `rules,skills,hooks` 的任意组合，`--skills` 可列出部分技能；部分同步不会删除先前安装的其它托管 skills。Codex skills 布局由 `--codex-layout` 控制：`agents` 使用官方 `~/.agents/skills/`，`codex` 使用兼容目录 `~/.codex/skills/`，`both` 双写，默认 `auto` 使用官方目录并自动兼容已由本项目管理的旧目录。
+只安装一个平台时用 `--target claude` 或 `--target codex`。`--components` 可选 `rules,skills,hooks` 的任意组合，`--skills` 可列出部分技能；部分同步不会删除先前安装的其它托管 skills。Codex skills 布局由 `--codex-layout` 控制：默认 `auto` 与 `agents` 均只使用官方 `~/.agents/skills/`；`codex` 使用兼容目录 `~/.codex/skills/`，`both` 双写，后二者会显示重复技能风险警告，不作为默认安装或验收基线。
+
+首次按默认布局同步时，同步器会列出旧 `~/.codex/skills/` 中由 EpiAgentKit manifest 管理的技能，仅删除与仓库源完全一致的副本；`.system`、非受管技能和内容不一致的目录均保留。可先演练迁移：
+
+```bash
+python scripts/epiagentkit.py sync --target codex --components skills --dry-run
+```
+
+默认 `doctor` 会扫描两个 Codex 发现根，同名技能跨根重复时验收失败。需要临时回退到旧布局时，可显式运行带警告的 `--codex-layout codex` 或 `--codex-layout both` 重新同步；恢复默认布局后再次同步即可安全迁回官方目录。
 
 仓库是唯一配置源。同步器只覆盖同名 EpiAgentKit 文件并合并受管 hook，不改认证、模型、密钥或无关个人配置；每个平台的安装清单记录组件、skills 目录和来源，供 `doctor` 逐文件验收。原命令 `configure_user.py`、`sync_user_configs.py` 与 `epiclaude.py` 保留兼容，但新文档与自动化统一使用 `epiagentkit.py`。
 
@@ -102,15 +114,23 @@ python scripts/epiagentkit.py doctor --target all
 
 ## 推荐 Hook 配置（可选，把硬红线交给 harness 强制）
 
-五项机械检查保留，但客户端只注册三个聚合 hook：一个 PreToolUse 原始数据保护、一个编辑后代码/文本检查、一个命令后图件/结果检查。同步器会复制脚本并自动合并配置：Claude Code 写入 `~/.claude/settings.json`，Codex 写入 `~/.codex/hooks.json`，不会覆盖模型、权限或其他自定义 hook。修改前会在同目录保留稳定的 `.epiagentkit.bak` 配置备份。Codex 修改 hook 后需在 `/hooks` 中重新审查并信任；其发现和信任规则见官方 [Hooks](https://learn.chatgpt.com/docs/hooks)。
+客户端只注册三个聚合 hook：一个 PreToolUse 原始数据保护、一个编辑后代码/文本检查、一个命令后图件/结果检查。同步器会复制脚本并自动合并配置：Claude Code 写入 `~/.claude/settings.json`，Codex 写入 `~/.codex/hooks.json`，不会覆盖模型、权限或其他自定义 hook。修改前会在同目录保留稳定的 `.epiagentkit.bak` 配置备份。Codex 修改 hook 后需在 `/hooks` 中重新审查并信任；其发现和信任规则见官方 [Hooks](https://learn.chatgpt.com/docs/hooks)。
 
-- `protect_rawdata.sh`（PreToolUse）：拦截对 `01_data/rawdata/` 原始数据的写改，直接 deny。
+- `protect_rawdata.sh`（PreToolUse）：canonicalize 编辑路径并拦截 `01_data/rawdata/` 及项目 `.epiagentkit-raw-roots` 声明的额外原始根。声明文件每行一个项目相对路径，支持中文、空格、反斜杠与 `../` 归一化。该 hook 不解析任意 shell/Python/PowerShell 写入，不能替代 ACL、只读副本和终检。
 - `check_r_syntax.sh`（PostToolUse）：`.R` 文件存盘即 `parse()` 语法检查，出错当场反馈给模型修。
-- `scan_ai_trace.sh`（PostToolUse）：扫文本里 emoji 与 AI 痕迹字样（AI辅助 / 机辅 / 待人工复核…）；放过 `✅`（BACKLOG 状态标记），跳过 `.claude/`、`.codex/` 与 `.agents/` 配置目录。
-- `fig_selfcheck.sh`（PostToolUse / Bash）：检测 `04_figures/` 新生成或修改的图，注入 `publication-figures §12ter` 逐元素自检清单（图例不遮数据 / 比例 / 裁切 / 数值溯源 / 风格一致），逼模型 Read 图逐条判。hook 只负责"逮事件 + 强制自检"，视觉判断仍由主模型完成。
-- `check_results_rds.sh`（PostToolUse / Bash）：检测 `06_results/` 新写入的 `.rds`，提醒"表格化数据应存 `.xlsx`，`.rds` 仅限模型/ggplot/MCA 等非表格对象"。
+- `scan_ai_trace.sh`（PostToolUse）：按明确字符集扫描生成过程痕迹与 emoji；允许科研符号 `→ ↔ ↑ ↓ ± × ≥ ≤ ℃`，`✅` 只允许出现在 `BACKLOG.md` 状态列。
+- `fig_selfcheck.sh`（PostToolUse / Bash）：用“项目绝对标识 + 文件内容指纹”检测 `04_figures/` 新生成或修改的图，不依赖 120 秒窗口；注入 `publication-figures §12ter` 自检清单，视觉判断仍由主模型完成。
+- `check_results_rds.sh`（PostToolUse / Bash）：同样按项目隔离的内容指纹检测 `06_results/` 新写入或修改的 `.rds`，提醒表格化数据改存 `.xlsx`。
 
 客户端配置不分别注册上述四个 PostToolUse 检查，而由 `post_edit_checks.sh` 聚合 R 语法 + 文本规范、`post_bash_checks.sh` 聚合图件 + `.rds` 检查。一次“修改出图脚本 + 执行出图”最多显示两个 PostToolUse hook；两类命令后提醒同时命中时合并为一条消息。原检查脚本仍可单独运行，便于诊断与兼容旧调用。
+
+交付前另运行确定性终检，不注册为自动修复 hook：
+
+```bash
+python hooks/final_project_check.py <项目根>
+```
+
+它检查原始目录的 Git 工作区修改、编号断层、旧版本命名、结果单源时间链、日志中的 error/warning/traceback/failed/NaN，以及疑似凭证或高熵秘密。秘密检查只报告文件和键名，不输出值。双端 Stop hook 的一致行为尚未作为稳定契约验证，因此默认不注册 Stop，不在失败后自动循环修复；PostToolUse 仅报告已发生事件，不能撤销副作用。
 
 （"多行 `Rscript -e` 会 segfault、须写成 `.R` 文件运行"这条已直接写进 `CLAUDE.md` 的代码必跑红线，常驻每会话上下文，无需单设 hook。）
 

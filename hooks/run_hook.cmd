@@ -11,5 +11,7 @@ if not defined BASH_EXE (
   exit /b 1
 )
 if not "%~2"=="" set "EPIAGENTKIT_HOOK_CLIENT=%~2"
+set "EPIAGENTKIT_PROJECT_ROOT=%CD%"
+set "PYTHONUTF8=1"
 "%BASH_EXE%" "%~1"
 exit /b %ERRORLEVEL%

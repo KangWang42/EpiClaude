@@ -1,0 +1,4 @@
+interface:
+  display_name: "Evidence Research"
+  short_description: "Verify research evidence and applicability"
+  default_prompt: "Use $evidence-research to verify evidence and judge whether a method applies to this study."

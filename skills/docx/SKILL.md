@@ -1,6 +1,6 @@
 ---
 name: docx
-description: "Use this skill whenever the user wants to create, read, edit, or manipulate Word documents (.docx files). Triggers include: any mention of \"Word doc\", \"word document\", \".docx\", or requests to produce professional documents with formatting like tables of contents, headings, page numbers, or letterheads. Also use when extracting or reorganizing content from .docx files, inserting or replacing images in documents, performing find-and-replace in Word files, working with tracked changes or comments, or converting content into a polished Word document. If the user asks for a \"report\", \"memo\", \"letter\", \"template\", or similar deliverable as a Word or .docx file, use this skill. Do NOT use for PDFs, spreadsheets, Google Docs, or general coding tasks unrelated to document generation."
+description: "Use this skill only when Codex must actually create, read, edit, validate, render, or otherwise manipulate a Word .docx file. It covers OOXML, formatting, tables of contents, page layout, images, tracked changes, comments, and conversion. For paper, report, or professional-text content, use the relevant content skill first and add docx as the file-operation companion. Do not trigger merely because the user asks for report or manuscript prose without a Word file deliverable. Do not use for PDFs, spreadsheets, Google Docs, or unrelated coding."
 license: Proprietary. LICENSE.txt has complete terms
 ---
 

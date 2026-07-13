@@ -12,6 +12,7 @@ from pathlib import Path
 import configure_user
 import sync_user_configs
 from config_core import (
+    CODEX_COMPATIBILITY_WARNING,
     HOOK_MANIFEST,
     INSTALL_MANIFEST,
     INSTALL_SCHEMA,
@@ -68,6 +69,19 @@ def tree_matches(source: Path, target: Path) -> bool:
     expected = tree_map(source)
     actual = tree_map(target)
     return all(actual.get(relative) == checksum for relative, checksum in expected.items())
+
+
+def codex_skill_duplicates(home: Path, codex_home: Path) -> dict[str, list[Path]]:
+    """Find same-named skills visible from both Codex discovery roots."""
+    roots = [home / ".agents" / "skills", codex_home / "skills"]
+    locations: dict[str, list[Path]] = {}
+    for root in roots:
+        if not root.is_dir():
+            continue
+        for item in root.iterdir():
+            if item.is_dir() and (item / "SKILL.md").is_file():
+                locations.setdefault(item.name, []).append(item)
+    return {name: paths for name, paths in locations.items() if len(paths) > 1}
 
 
 def doctor_parser() -> argparse.ArgumentParser:
@@ -206,6 +220,39 @@ def run_doctor(argv: list[str]) -> int:
         checks.extend(check_platform("claude", root, claude_home, [claude_home / "skills"]))
     if args.target in {"codex", "all"}:
         checks.extend(check_platform("codex", root, codex_home, codex_dirs))
+        duplicates = codex_skill_duplicates(home, codex_home)
+        if duplicates:
+            detail = "; ".join(
+                f"{name}: {', '.join(map(str, paths))}"
+                for name, paths in sorted(duplicates.items())
+            )
+            compatibility_mode = bool(args.codex_skills_dir) or args.codex_layout in {
+                "codex",
+                "both",
+            }
+            checks.append(
+                {
+                    "status": "WARN" if compatibility_mode else "FAIL",
+                    "item": "codex.skills.duplicate_roots",
+                    "detail": detail,
+                }
+            )
+        else:
+            checks.append(
+                {
+                    "status": "PASS",
+                    "item": "codex.skills.duplicate_roots",
+                    "detail": "no duplicate skill names across discovery roots",
+                }
+            )
+        if args.codex_layout in {"codex", "both"}:
+            checks.append(
+                {
+                    "status": "WARN",
+                    "item": "codex.skills.compatibility_layout",
+                    "detail": CODEX_COMPATIBILITY_WARNING,
+                }
+            )
     failed = [check for check in checks if check["status"] == "FAIL"]
     if args.as_json:
         print(json.dumps({"ok": not failed, "checks": checks}, ensure_ascii=False, indent=2))

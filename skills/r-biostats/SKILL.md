@@ -8,8 +8,9 @@ description: |
 
 # R 流行病学与生物统计执行 skill
 
-> **上游原则**：本 skill 是执行层，所有行为受 `biostat-principles` 六原则约束。冲突时原则优先。
+> **上游原则**：本 skill 是执行层，开工先对齐 `biostat-principles` 六原则；规则冲突按全局 `CLAUDE.md` 的唯一优先级处理。
 > **核心工作模式**：`PLAN → CODE → RUN → VERIFY → DOC` 五阶状态机，每阶必须有显式验证后才能进入下一阶。
+> **项目卫生**：目录、连续编号、表图、registry、归档与 BACKLOG 细则统一读取 `../project-init/references/project-hygiene.md`。
 
 ---
 
@@ -111,7 +112,7 @@ description: |
 
 ### 必须
 
-- **默认语言 R**：`02_code/` 分析脚本默认 `.R`，仅特殊要求项目用 Python（见全局 CLAUDE.md §2）。
+- **默认语言 R**：`02_code/` 分析脚本默认 `.R`，仅特殊要求项目用 Python（见 project-init `references/project-hygiene.md`）。
 - **代码风格遵 [references/code-style.md](references/code-style.md)**（软约束，服从工作流/红线）：管道为主线、中间变量少而短且语义化命名（`data`→`data_neat`→`data_baseline`，不用 `tmp/df1`）、`map`/`across`/`case_when` 优先于循环与连串 if、输出干净（最终脚本无调试 `cat`/`print`）、`# 节 ----` 分节 + 关键步骤一句话注释、不留死代码。
 - R 脚本顶部：`library()` 全部依赖 + `set.seed(123)` + 注释说明本脚本目的/输入/输出
 - 命名：文件 `NN_描述.R`、变量 `snake_case`、函数 `do_something()`
@@ -331,7 +332,7 @@ render_summary_md(yp, "07_paper/0_result_summaries.md")  # 派生人读版
 
 **D. 分析中冒出"还能补"的想法 → 追加 `BACKLOG.md`**：
 还能加哪个敏感性/亚组分析、缺哪项协变量数据、某方法能强化但本轮没做、下一步设想——
-当轮就写进项目根 `BACKLOG.md` 主表（待完善内容【含类别标签】+完善方式 AI/人工+重要性 必补/建议/可选+状态，见全局 CLAUDE.md §2），
+当轮就写进项目根 `BACKLOG.md` 主表（格式见 project-init `references/project-hygiene.md` §6），
 不靠记忆、不只在回复里口头提。
 
 ---

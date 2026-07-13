@@ -518,6 +518,12 @@ init_project <- function(name,
       "*.bak"),
     file.path(proj, ".gitignore"), useBytes = TRUE
   )
+  writeLines(
+    c("# 每行一个项目相对原始数据根；01_data/rawdata 已默认保护，无需重复。",
+      "# 例如：01_data/external_raw",
+      "# 例如：source_exports"),
+    file.path(proj, ".epiagentkit-raw-roots"), useBytes = TRUE
+  )
   keep_dirs <- c("01_data/rawdata", "03_tables", "03_tables/supplementary",
                  "04_figures", "04_figures/supplementary", "05_reports",
                  "06_results", "09_backup")

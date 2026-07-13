@@ -1,0 +1,96 @@
+{
+  "scope": "Metadata contract fixtures for human and automated boundary review; these cases do not simulate model semantic routing.",
+  "cases": [
+    {
+      "id": "new_empty_project",
+      "prompt": "在空工作区初始化一个新的队列研究项目",
+      "primary": "project-init",
+      "companions": [],
+      "excluded": []
+    },
+    {
+      "id": "existing_project_analysis",
+      "prompt": "在现有项目中开始 Cox 回归分析",
+      "primary": "r-biostats",
+      "companions": ["biostat-principles"],
+      "excluded": ["project-init", "publication-figures"]
+    },
+    {
+      "id": "analysis_with_plot",
+      "prompt": "在现有项目中完成回归并生成森林图",
+      "primary": "r-biostats",
+      "companions": ["biostat-principles", "publication-figures"],
+      "excluded": ["project-init"]
+    },
+    {
+      "id": "paper_from_scratch_word",
+      "prompt": "根据结果单源起草整篇论文并生成 Word 文件",
+      "primary": "academic-publishing",
+      "companions": ["academic-humanizer", "docx"],
+      "excluded": []
+    },
+    {
+      "id": "existing_paragraph_polish",
+      "prompt": "润色这段已经写好的讨论文字，只返回净稿",
+      "primary": "academic-humanizer",
+      "companions": [],
+      "excluded": ["academic-publishing", "docx"]
+    },
+    {
+      "id": "report_prose_only",
+      "prompt": "先起草一份进展报告正文，不生成文件",
+      "primary": "report-writing",
+      "companions": [],
+      "excluded": ["docx"]
+    },
+    {
+      "id": "report_word_output",
+      "prompt": "起草分析报告并生成 docx",
+      "primary": "report-writing",
+      "companions": ["docx"],
+      "excluded": ["academic-publishing"]
+    },
+    {
+      "id": "sysu_presentation_file",
+      "prompt": "制作中山大学开题汇报并输出 pptx",
+      "primary": "sysu-ppt",
+      "companions": ["pptx"],
+      "excluded": []
+    },
+    {
+      "id": "evidence_before_method",
+      "prompt": "查找这个结局评分构建方法的最新依据，再决定分析方法",
+      "primary": "evidence-research",
+      "companions": [],
+      "excluded": ["r-biostats", "academic-publishing"]
+    },
+    {
+      "id": "consulting_after_analysis",
+      "prompt": "分析已经完成，请把结果打包成可外发咨询交付物",
+      "primary": "consulting-delivery",
+      "companions": [],
+      "excluded": ["project-init"]
+    },
+    {
+      "id": "ecg_python_analysis",
+      "prompt": "用 Python 对多轮 ECG 做心拍质量控制和患者级建模",
+      "primary": "python-ecg-analysis",
+      "companions": [],
+      "excluded": ["r-biostats"]
+    },
+    {
+      "id": "non_ecg_machine_learning",
+      "prompt": "对普通影像数据训练一个通用分类器",
+      "primary": "biostat-principles",
+      "companions": [],
+      "excluded": ["python-ecg-analysis"]
+    },
+    {
+      "id": "ecg_paper_only",
+      "prompt": "只润色已经写好的 ECG 论文讨论，不运行分析",
+      "primary": "academic-humanizer",
+      "companions": [],
+      "excluded": ["python-ecg-analysis", "r-biostats"]
+    }
+  ]
+}

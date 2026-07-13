@@ -8,7 +8,13 @@ import subprocess
 import sys
 from pathlib import Path
 
-from config_core import PRESETS, available_skills, csv_values, expand_dependencies
+from config_core import (
+    CODEX_COMPATIBILITY_WARNING,
+    PRESETS,
+    available_skills,
+    csv_values,
+    expand_dependencies,
+)
 
 
 def parse_args(
@@ -155,6 +161,8 @@ def main(argv: list[str] | None = None, prog: str | None = None) -> int:
     print("- 行为：覆盖同名 EpiAgentKit 文件，保留无关个人配置")
     if target in {"codex", "all"}:
         print(f"- Codex skills 布局：{args.codex_layout}")
+        if args.codex_layout in {"codex", "both"}:
+            print(f"- {CODEX_COMPATIBILITY_WARNING}")
     if "hooks" in components:
         print("- Hooks：复制脚本并合并客户端配置；Windows 自动使用 Git Bash 启动器")
 

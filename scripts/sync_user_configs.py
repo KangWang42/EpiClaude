@@ -14,6 +14,7 @@ import uuid
 from pathlib import Path
 
 from config_core import (
+    CODEX_COMPATIBILITY_WARNING,
     HOOK_MANIFEST,
     INSTALL_MANIFEST,
     INSTALL_SCHEMA,
@@ -22,6 +23,7 @@ from config_core import (
     LEGACY_SKILL_MANIFEST,
     PROJECT_NAME,
     SKILL_MANIFEST,
+    active_manifest,
     csv_values,
     load_json,
     resolve_codex_skill_dirs,
@@ -208,6 +210,63 @@ def mirror_tree(source: Path, target: Path) -> None:
             else:
                 os.chmod(item, stat.S_IWRITE | stat.S_IREAD)
                 item.unlink()
+
+
+def trees_equal(source: Path, target: Path) -> bool:
+    """Compare two managed skill trees without reading unrelated sibling content."""
+    if not source.is_dir() or not target.is_dir():
+        return False
+    source_files = {
+        item.relative_to(source): item
+        for item in source.rglob("*")
+        if item.is_file() and not ignored(item)
+    }
+    target_files = {
+        item.relative_to(target): item
+        for item in target.rglob("*")
+        if item.is_file() and not ignored(item)
+    }
+    return source_files.keys() == target_files.keys() and all(
+        files_equal(source_files[relative], target_files[relative])
+        for relative in source_files
+    )
+
+
+def migrate_codex_compatibility_skills(
+    root: Path, compatibility: Path, dry_run: bool
+) -> None:
+    """Remove only verified EpiAgentKit copies from the legacy Codex skill root."""
+    manifest = compatibility / SKILL_MANIFEST
+    legacy_manifest = compatibility / LEGACY_SKILL_MANIFEST
+    selected_manifest = active_manifest(manifest.parent, manifest.name, legacy_manifest.name)
+    if not selected_manifest.is_file():
+        return
+
+    managed = read_manifest(manifest, legacy_manifest)
+    if not managed:
+        return
+    print("MIGRATE Codex compatibility skills: " + ", ".join(sorted(managed)))
+    remaining = set(managed)
+    for name in sorted(managed):
+        source = root / "skills" / name
+        duplicate = compatibility / name
+        if not duplicate.exists():
+            remaining.discard(name)
+            continue
+        if not source.is_dir() or not trees_equal(source, duplicate):
+            print(f"KEEP   {duplicate} (not identical to repository source)")
+            continue
+        safe_remove(duplicate, compatibility, dry_run)
+        remaining.discard(name)
+
+    if remaining:
+        write_manifest(manifest, legacy_manifest, sorted(remaining), dry_run)
+        return
+    for path in (manifest, legacy_manifest):
+        if path.is_file():
+            print(f"REMOVE {path}")
+            if not dry_run:
+                path.unlink()
 
 
 def sync_skills(
@@ -513,6 +572,8 @@ def main(argv: list[str] | None = None, prog: str | None = None) -> None:
     home = args.home.expanduser().resolve()
     claude_home = (args.claude_home or home / ".claude").expanduser().resolve()
     codex_home = (args.codex_home or home / ".codex").expanduser().resolve()
+    if args.codex_layout in {"codex", "both"}:
+        print(CODEX_COMPATIBILITY_WARNING)
     codex_skill_dirs = resolve_codex_skill_dirs(
         home,
         codex_home,
@@ -587,6 +648,10 @@ def main(argv: list[str] | None = None, prog: str | None = None) -> None:
                     prune_stale=prune_stale,
                     prune_codex_bundled=args.prune_codex_bundled,
                     codex_home=codex_home,
+                )
+            if not args.codex_skills_dir and args.codex_layout in {"auto", "agents"}:
+                migrate_codex_compatibility_skills(
+                    root, codex_home / "skills", args.dry_run
                 )
         if "hooks" in components:
             sync_hooks(root / "hooks", codex_home / "hooks", args.dry_run)

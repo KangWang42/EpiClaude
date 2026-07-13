@@ -10,6 +10,7 @@ description: |
 
 > **审查本质**：证据链核对。不只看代码、不只看结果；看的是"数据 → 代码 → 结果 → 表图 → 正文"这条链是否首尾一致。
 > **工作模式**：六层逐项过 TODO → 每层有硬门禁 → 不通过不进入下一层 → 全过才发 **pass**。
+> **结构单源**：目录、命名、registry、归档与 BACKLOG 的规范以 `../project-init/references/project-hygiene.md` 为准。
 
 ---
 
@@ -315,7 +316,7 @@ Layer 4 审查必须输出一张**数字一致性矩阵**：
 ### Fixed in this audit
 - [本次审查直接客观修复的小问题]
 
-> 审查中发现"非阻塞但该补"的项（缺某项数据、某分析能强化但没做、某文献待补、下一步建议），除写进本报告外，**同时追加到项目根 `BACKLOG.md` 主表**（待完善内容+完善方式 AI/人工+重要性 必补/建议/可选+状态，见全局 CLAUDE.md §2），避免报告读完就忘；红色 Critical 不进 BACKLOG，必须修复后重审。
+> 审查中发现"非阻塞但该补"的项（缺某项数据、某分析能强化但没做、某文献待补、下一步建议），除写进本报告外，**同时追加到项目根 `BACKLOG.md` 主表**（格式见 project-init `references/project-hygiene.md` §6），避免报告读完就忘；红色 Critical 不进 BACKLOG，必须修复后重审。
 
 ## Scientific judgment
 

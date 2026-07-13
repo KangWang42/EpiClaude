@@ -2,7 +2,7 @@
 name: project-init
 description: |
   标准化卫生统计研究项目初始化 skill。一键创建七层目录结构、模板文件、Git 配置；支持"研究模式"和"咨询模式"双预设。
-  触发场景：(1) 用户说"创建项目"、"初始化"、"新建项目"；(2) 需要标准研究项目结构；(3) 开始新的数据分析任务；(4) 接了咨询任务需要快速起项目。
+  触发场景：(1) 用户明确说"创建项目"、"初始化"、"新建项目"；(2) 空工作区需要标准研究项目骨架；(3) 接了咨询任务并明确要求新建项目。已有项目开始分析不触发本 skill。
   上游依赖：biostat-principles（目录规约）；若研究类型=咨询，下游接 consulting-delivery。
 ---
 
@@ -40,6 +40,8 @@ description: |
 
 ## 二、目录结构
 
+目录、编号、表图、registry、归档与 BACKLOG 的维护契约见 [references/project-hygiene.md](references/project-hygiene.md)。
+
 ### 研究模式（A）
 
 ```
@@ -53,6 +55,7 @@ description: |
 ├── DECISIONS.md           # 方法决策
 ├── BACKLOG.md             # 待补清单（缺文献/数据/方法/规划，全程只增不删）
 ├── .gitignore             # 忽略数据和临时
+├── .epiagentkit-raw-roots # 可选额外原始数据根，每行一个项目相对路径
 ├── .Rproj                 # RStudio 项目文件
 ├── 01_data/
 │   ├── rawdata/           # 只读
@@ -204,7 +207,7 @@ init_project(
 
 全项目周期累积的"待补/想法/下一步"单一入口。**只增不删**——发现即记，做完勾掉留痕。
 关键不在建文件，而在 agent 任何阶段（清洗 / 分析 / 出图 / 写作 / 审查）一发现缺口就立即追加，
-不靠记忆、不留到"以后"（全局 CLAUDE.md §2 已设硬红线）。
+不靠记忆、不留到"以后"（全局 CLAUDE.md §3 已设硬红线）。
 
 ```markdown
 # BACKLOG · 待补清单

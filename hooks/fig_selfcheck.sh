@@ -1,28 +1,10 @@
 #!/usr/bin/env bash
-# PostToolUse(Bash)：检测 04_figures/ 新生成或修改的图 → 注入 publication-figures §12ter
+# PostToolUse(Bash)：按项目隔离的内容指纹检测 04_figures/ 新生成或修改的图。
 # 逐元素自检清单，逼主模型 Read 该图逐条判断。hook 不做视觉判断（命令看不了图），
 # 只负责"逮住出图事件 + 强制自检"，判断交给视觉能力强的主模型。
-[ -d 04_figures ] || exit 0                       # 无 04_figures（如非项目目录）直接跳过
-state_root="${EPIAGENTKIT_STATE_HOME:-${EPICLAUDE_STATE_HOME:-$HOME/.epiagentkit}}"
-mkdir -p "$state_root" 2>/dev/null
-state="$state_root/.fig_selfcheck_state"          # 已提醒记录（path|mtime），避免重复提醒
-touch "$state" 2>/dev/null
-
-new=""
-while IFS= read -r img; do
-  [ -n "$img" ] || continue
-  mt=$(stat -c '%Y' "$img" 2>/dev/null || echo 0)
-  key="$img|$mt"
-  if ! grep -qF "$key" "$state" 2>/dev/null; then  # 该图此版本未提醒过
-    echo "$key" >> "$state"
-    new="$new$img"$'\n'
-  fi
-done < <(find 04_figures -type f \( -iname '*.png' -o -iname '*.pdf' \) -newermt '-120 seconds' 2>/dev/null)
-
-# 控制 state 文件大小
-if [ "$(wc -l < "$state" 2>/dev/null || echo 0)" -gt 600 ]; then
-  tail -n 300 "$state" > "$state.tmp" 2>/dev/null && mv "$state.tmp" "$state" 2>/dev/null
-fi
+hook_dir=$(cd "$(dirname "$0")" && pwd)
+new=$(python "$hook_dir/_file_state.py" \
+  --kind figures --root 04_figures --extension .png --extension .pdf)
 
 if [ -n "$new" ]; then
   notice=$({

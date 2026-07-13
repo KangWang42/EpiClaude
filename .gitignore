@@ -9,9 +9,7 @@
 !/skills/
 !/hooks/
 !/scripts/
-
-# skills 内排除：绑定私有数据项目的 skill 不公开
-/skills/python-ecg-analysis/
+!/docs/
 
 # 通用排除
 __pycache__/
