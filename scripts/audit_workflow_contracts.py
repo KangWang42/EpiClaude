@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import json
 import os
 import string
@@ -35,6 +36,15 @@ LINE_BUDGET = 200
 
 def read(relative: str) -> str:
     return (ROOT / relative).read_text(encoding="utf-8")
+
+
+def load_module(name: str, path: Path):
+    spec = importlib.util.spec_from_file_location(name, path)
+    if spec is None or spec.loader is None:
+        raise ImportError(path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 def snapshot_tree(root: Path) -> dict[str, str]:
@@ -120,6 +130,29 @@ def main() -> int:
             detail = (result.stdout + result.stderr).strip()
             problems.append(f"{skill_dir.name}: quick_validate failed: {detail}")
 
+    evidence_tests = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "skills/evidence-research/tests",
+            "-p",
+            "test_*.py",
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    if evidence_tests.returncode:
+        problems.append(
+            "evidence-research offline tests failed: "
+            + (evidence_tests.stdout + evidence_tests.stderr).strip()
+        )
+
     routing_path = ROOT / "scripts/skill_routing_cases.json"
     try:
         routing_contract = json.loads(routing_path.read_text(encoding="utf-8"))
@@ -163,6 +196,9 @@ def main() -> int:
             "evidence-research",
             "唯一优先级",
             "凭证的完整内容",
+            "轻量任务",
+            "不得自动初始化项目",
+            "正式项目审查或交付签发前",
         ),
         "skills/project-init/references/project-hygiene.md": (
             "编号脚本不超过 10 个",
@@ -171,15 +207,38 @@ def main() -> int:
             "BACKLOG.md",
         ),
         "skills/evidence-research/SKILL.md": (
-            "预注册检索协议",
+            "Rapid verification",
+            "Formal evidence review",
             "跨领域可迁移性",
             "无法取得全文或无法核对关键结论时标记“未核验”",
             "文献只能说明合理范围或核查方向",
+            "scripts/verify_sources.py",
+        ),
+        "skills/evidence-research/references/source-routing.md": (
+            "搜索结果片段",
+            "PubMed CommentsCorrections",
+            "Crossref relation",
+            "注册平台",
         ),
         "skills/evidence-research/references/evidence-matrix.md": (
+            "evidence_id",
             "来源标识",
             "核验状态",
             "当前项目映射",
+        ),
+        "skills/evidence-research/scripts/verify_sources.py": (
+            '"metadata_verified"',
+            '"full_text_status"',
+            '"claim_verified"',
+            '"retrieved_at"',
+            'checks["query_identity"]',
+            "PubMed E-utilities and Crossref",
+        ),
+        "skills/evidence-research/tests/test_verify_sources.py": (
+            "FakeTransport",
+            "test_network_failure_is_explicit",
+            "test_single_source_title_must_match_the_query",
+            "test_title_conflict_remains_unverified",
         ),
         "skills/project-init/scripts/init_project.R": (
             '"PROTOCOL.md"',
@@ -190,28 +249,38 @@ def main() -> int:
             '"02_code/conventions.R"',
             '"02_code/vendored"',
             '".epiagentkit-raw-roots"',
+            '"**证据ID**：',
         ),
         "skills/r-biostats/SKILL.md": (
             "02_code/vendored/emit_summary.R",
             "02_code/vendored/fig_setup.R",
             "PROTOCOL.md",
             "SAP.md",
+            "轻量任务",
+            "不补建缺失的项目文档",
         ),
         "skills/biostat-principles/SKILL.md": (
             "09_backup/EXPERIMENTS.md",
             "PLAN.md",
             "FINDINGS.md",
             "规则冲突只使用全局",
+            "轻量任务",
+            "不创建七层目录",
         ),
         "skills/consulting-delivery/SKILL.md": (
             "09_backup/INDEX.md",
             "MANIFEST.md",
             "唯一当前交付包",
+            "R 或 Python 分析",
+            "run_all.R` 或 `run_all.py",
+            "check-project",
         ),
         "skills/consulting-delivery/scripts/consulting_scaffold.R": (
             'subdirs <- c("data", "code", "results", "tables", "figures")',
             'source("code/config.R"',
             "TABLE_REGISTRY <- character()",
+            'language = c("R", "python")',
+            'file.path(pack, "run_all.py")',
         ),
         "scripts/sync_user_configs.py": (
             "def atomic_copy_file(",
@@ -233,6 +302,8 @@ def main() -> int:
         ),
         "skills/project-init/SKILL.md": (
             "已有项目开始分析不触发本 skill",
+            "简单作业、单次处理、快速核验",
+            "**证据ID**",
         ),
         "skills/academic-publishing/SKILL.md": (
             "已有文本的局部润色、压缩与语气校准由 academic-humanizer 主导",
@@ -244,6 +315,10 @@ def main() -> int:
         "skills/pptx/SKILL.md": (
             "only when Codex must actually",
             "file-operation companion",
+        ),
+        "skills/report-writing/SKILL.md": (
+            "无论只要正文还是文件",
+            "只要正文时不调用 docx",
         ),
         "skills/python-ecg-analysis/SKILL.md": (
             "只有确认 `--help` 会在业务逻辑前退出且不会写文件时",
@@ -257,8 +332,10 @@ def main() -> int:
         "scripts/epiagentkit.py": (
             "def tree_matches(",
             "def run_doctor(",
+            "def run_check_project(",
             'command == "install"',
             'command == "sync"',
+            'command == "check-project"',
         ),
         "scripts/epiclaude.py": ("from epiagentkit import main",),
         "hooks/_emit_notice.py": (
@@ -277,6 +354,7 @@ def main() -> int:
         "hooks/fig_selfcheck.sh": (
             "_file_state.py",
             "--kind figures",
+            "当前平台的视觉检查工具",
             '_emit_notice.py"',
         ),
         "hooks/check_results_rds.sh": (
@@ -286,14 +364,25 @@ def main() -> int:
         ),
         "hooks/_file_state.py": (
             "project_key = hashlib.sha256",
-            "current[relative] = digest(path)",
+            "old.get(\"size\") == stat.st_size",
+            "if not baseline and old_fingerprint != fingerprint",
         ),
         "hooks/final_project_check.py": (
+            "DEFAULT_CONTRACT",
+            "project.not_directory",
             "rawdata.worktree_modified",
             "numbering_gap",
-            "results.source_older_than_outputs",
+            "provenance.hash_mismatch",
+            "results.source_mtime_older_than_outputs",
             "logs.abnormal_term",
             "secrets.high_entropy",
+            "benign_named_credential",
+            "os.walk(project, topdown=True",
+        ),
+        "skills/epi-project-audit/SKILL.md": (
+            "epiagentkit.py check-project",
+            "任何 ERROR 都阻止最终签发",
+            "不得把无 provenance 时的 mtime 提示升级成确定性不一致",
         ),
         "hooks/post_edit_checks.sh": (
             'run_check "check_r_syntax.sh"',
@@ -341,6 +430,9 @@ def main() -> int:
         ),
         "skills/academic-publishing/SKILL.md": (
             "生成或润色任一部件",
+        ),
+        "hooks/final_project_check.py": (
+            "results.source_older_than_outputs",
         ),
         "skills/python-ecg-analysis/SKILL.md": (
             "对拟运行入口执行 `python <script> --help`",
@@ -721,6 +813,40 @@ def main() -> int:
             ):
                 problems.append("Codex duplicate-root doctor self-test did not fail")
 
+    with tempfile.TemporaryDirectory(prefix="epiagentkit_python_delivery_") as directory:
+        delivery_root = Path(directory) / "reports"
+        driver = Path(directory) / "create_python_delivery.R"
+        scaffold = (ROOT / "skills/consulting-delivery/scripts/consulting_scaffold.R").as_posix()
+        root_value = delivery_root.as_posix()
+        driver.write_text(
+            f'source("{scaffold}", encoding = "UTF-8")\n'
+            f'create_delivery_pack("结果-1-1-Python交付", root = "{root_value}", '
+            'language = "python")\n',
+            encoding="utf-8",
+        )
+        delivery = subprocess.run(
+            ["Rscript", str(driver)],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+        pack = delivery_root / "结果-1-1-Python交付"
+        expected_python_pack = (
+            pack / "run_all.py",
+            pack / "requirements.txt",
+            pack / "code/config.py",
+            pack / "code/conventions.py",
+        )
+        if delivery.returncode or not all(path.is_file() for path in expected_python_pack):
+            problems.append(
+                "Python consulting scaffold self-test failed: "
+                + (delivery.stdout + delivery.stderr).strip()
+            )
+        if (pack / "run_all.R").exists():
+            problems.append("Python consulting scaffold emitted an R entry point")
+
     notice_helper = ROOT / "hooks" / "_emit_notice.py"
     for client, expected_key in (("claude", "hookSpecificOutput"), ("codex", "systemMessage")):
         environment = os.environ.copy()
@@ -761,6 +887,7 @@ def main() -> int:
             "外部原始数据/record.csv",
             r"folder\供应方 原始导出\record.csv",
             "../project/外部原始数据/record.csv",
+            "06_results/../01_data/rawdata/record.csv",
             (project / "folder/供应方 原始导出/record.csv").as_posix(),
         )
         for path in protected_paths:
@@ -787,6 +914,34 @@ def main() -> int:
         patch_result = run_hook_script(raw_hook, project, patch_payload)
         if '"permissionDecision":"deny"' not in patch_result.stdout:
             problems.append("raw guard self-test did not inspect apply_patch paths")
+
+        escaped_patch_payload = json.dumps(
+            {
+                "tool_input": {
+                    "command": "*** Begin Patch\n"
+                    "*** Update File: 06_results/../01_data/rawdata/record.csv\n"
+                    "*** End Patch"
+                }
+            }
+        )
+        escaped_patch = run_hook_script(raw_hook, project, escaped_patch_payload)
+        if '"permissionDecision":"deny"' not in escaped_patch.stdout:
+            problems.append("raw guard self-test missed apply_patch path escape")
+
+        opaque_commands = (
+            "Set-Content -LiteralPath '01_data/rawdata/record.csv' -Value x",
+            "python -c \"from pathlib import Path; Path('01_data/rawdata/record.csv').write_text('x')\"",
+        )
+        for command in opaque_commands:
+            result = run_hook_script(
+                raw_hook,
+                project,
+                json.dumps({"tool_input": {"command": command}}),
+            )
+            if result.returncode or result.stdout.strip() or result.stderr.strip():
+                problems.append(
+                    "raw guard self-test: early gate claimed to parse opaque shell writes"
+                )
 
         for path in (
             "06_results/output.xlsx",
@@ -827,6 +982,52 @@ def main() -> int:
             if result.returncode != 2:
                 problems.append(f"text scan self-test allowed forbidden content: {path.name}")
 
+    file_state = load_module("epiagentkit_file_state", ROOT / "hooks" / "_file_state.py")
+    with tempfile.TemporaryDirectory(prefix="epiagentkit_file_state_") as directory:
+        invalid_state = Path(directory) / "invalid.json"
+        invalid_state.write_text("{}\n", encoding="utf-8")
+        invalid_files, invalid_baseline = file_state.load_previous(invalid_state)
+        if invalid_files or not invalid_baseline:
+            problems.append("file state self-test: incomplete state was not reset to baseline")
+        path = Path(directory) / "Fig1_test.png"
+        base_ns = 1_700_000_000_000_000_000
+        path.write_bytes(b"first")
+        os.utime(path, ns=(base_ns, base_ns))
+        calls: list[Path] = []
+
+        def counted_digest(target: Path) -> str:
+            calls.append(target)
+            return hashlib.sha256(target.read_bytes()).hexdigest()
+
+        files = {"04_figures/Fig1_test.png": path}
+        first_state, first_changed = file_state.update_fingerprints(
+            files, {}, True, counted_digest
+        )
+        if first_changed or len(calls) != 1:
+            problems.append("file state self-test: baseline was not silent and complete")
+        calls.clear()
+        _, unchanged = file_state.update_fingerprints(
+            files, first_state, False, counted_digest
+        )
+        if unchanged or calls:
+            problems.append("file state self-test: unchanged stat triggered hashing")
+        path.write_bytes(b"first")
+        os.utime(path, ns=(base_ns + 2_000_000_000, base_ns + 2_000_000_000))
+        calls.clear()
+        second_state, same_content = file_state.update_fingerprints(
+            files, first_state, False, counted_digest
+        )
+        if same_content or len(calls) != 1:
+            problems.append("file state self-test: stat candidate was not hash-checked")
+        path.write_bytes(b"other")
+        os.utime(path, ns=(base_ns + 4_000_000_000, base_ns + 4_000_000_000))
+        calls.clear()
+        _, content_changed = file_state.update_fingerprints(
+            files, second_state, False, counted_digest
+        )
+        if content_changed != ["04_figures/Fig1_test.png"] or len(calls) != 1:
+            problems.append("file state self-test: changed candidate was not reported")
+
     with tempfile.TemporaryDirectory(prefix="epiagentkit_hook_aggregate_") as directory:
         project = Path(directory) / "project"
         state = Path(directory) / "state"
@@ -864,6 +1065,12 @@ def main() -> int:
             problems.append("aggregate edit hook self-test: text trace failure was not preserved")
 
         hook_env = {"EPIAGENTKIT_STATE_HOME": str(state)}
+        baseline = run_hook_script(bash_hook, project, environment=hook_env)
+        if baseline.returncode or baseline.stdout.strip() or baseline.stderr.strip():
+            problems.append("aggregate Bash hook self-test: first baseline reported old files")
+
+        figure.write_bytes(b"png fixture changed")
+        (results / "model.rds").write_bytes(b"rds fixture changed")
         combined = run_hook_script(bash_hook, project, environment=hook_env)
         repeated = run_hook_script(bash_hook, project, environment=hook_env)
         try:
@@ -880,7 +1087,7 @@ def main() -> int:
         if repeated.returncode or repeated.stdout.strip() or repeated.stderr.strip():
             problems.append("aggregate Bash hook self-test: repeated notice was not deduplicated")
 
-        figure.write_bytes(b"changed png content")
+        figure.write_bytes(b"changed png content with a different size")
         os.utime(figure, (1, 1))
         changed = run_hook_script(bash_hook, project, environment=hook_env)
         try:
@@ -891,13 +1098,15 @@ def main() -> int:
             changed_message = ""
         if changed.returncode or "Fig1_test.png" not in changed_message:
             problems.append(
-                "aggregate Bash hook self-test: content fingerprint missed old-mtime change"
+                "aggregate Bash hook self-test: candidate content change was missed"
             )
 
         second_project = Path(directory) / "second_project"
         second_figure = second_project / "04_figures/Fig1_test.png"
         second_figure.parent.mkdir(parents=True)
         second_figure.write_bytes(b"png fixture")
+        second_baseline = run_hook_script(bash_hook, second_project, environment=hook_env)
+        second_figure.write_bytes(b"png fixture changed")
         same_name = run_hook_script(bash_hook, second_project, environment=hook_env)
         same_name_repeat = run_hook_script(bash_hook, second_project, environment=hook_env)
         try:
@@ -906,7 +1115,13 @@ def main() -> int:
             ]
         except (json.JSONDecodeError, KeyError, TypeError):
             same_name_message = ""
-        if same_name.returncode or "Fig1_test.png" not in same_name_message:
+        if (
+            second_baseline.returncode
+            or second_baseline.stdout.strip()
+            or second_baseline.stderr.strip()
+            or same_name.returncode
+            or "Fig1_test.png" not in same_name_message
+        ):
             problems.append(
                 "aggregate Bash hook self-test: project-scoped state collided on same Fig name"
             )
@@ -921,28 +1136,85 @@ def main() -> int:
 
     with tempfile.TemporaryDirectory(prefix="epiagentkit_final_check_") as directory:
         root = Path(directory)
-        final_check = ROOT / "hooks" / "final_project_check.py"
+        check_command = ROOT / "scripts" / "epiagentkit.py"
+
+        missing_result = run_epiagentkit(
+            ["check-project", str(root / "missing"), "--json"]
+        )
+        try:
+            missing_payload = json.loads(missing_result.stdout)
+        except json.JSONDecodeError:
+            missing_payload = {}
+        if missing_result.returncode != 1 or "project.not_directory" not in {
+            item.get("check") for item in missing_payload.get("findings", [])
+        }:
+            problems.append("final project check self-test accepted a missing project root")
 
         good = root / "good"
+        (good / "01_data/rawdata").mkdir(parents=True)
         (good / "02_code").mkdir(parents=True)
+        (good / "02_code/vendored").mkdir()
+        (good / "02_code/lib").mkdir()
         (good / "03_tables").mkdir()
         (good / "04_figures").mkdir()
         (good / "07_paper").mkdir()
+        (good / "09_backup").mkdir()
+        (good / "node_modules").mkdir()
+        (good / "01_data/rawdata/secret.env").write_text(
+            "api_key = should_never_be_scanned\n", encoding="utf-8"
+        )
+        (good / "09_backup/report_final.md").write_text("old\n", encoding="utf-8")
+        (good / "node_modules/cache.log").write_text(
+            "WARNING should be pruned\n", encoding="utf-8"
+        )
         (good / "02_code/01_clean.R").write_text("x <- 1\n", encoding="utf-8")
+        for helper in (
+            "config.py",
+            "registry.py",
+            "conventions.py",
+            "lib.py",
+            "modelling.py",
+            "custom_helper.py",
+        ):
+            (good / "02_code" / helper).write_text("VALUE = 1\n", encoding="utf-8")
+        (good / "02_code/vendored/helper.py").write_text("VALUE = 1\n", encoding="utf-8")
+        (good / ".epiagentkit-check.json").write_text(
+            json.dumps({"code_helper_files": ["custom_helper.py"]}), encoding="utf-8"
+        )
         table = good / "03_tables/Table1_baseline.xlsx"
-        chart = good / "04_figures/Fig1_flow.png"
+        chart_png = good / "04_figures/Fig1_flow.png"
+        chart_pdf = good / "04_figures/Fig1_flow.pdf"
         source = good / "07_paper/results.yaml"
         summary = good / "07_paper/0_result_summaries.md"
         table.write_bytes(b"xlsx")
-        chart.write_bytes(b"png")
+        chart_png.write_bytes(b"png")
+        chart_pdf.write_bytes(b"pdf")
         source.write_text("schema_version: 1\n", encoding="utf-8")
         summary.write_text("summary\n", encoding="utf-8")
-        os.utime(table, (1, 1))
-        os.utime(chart, (1, 1))
-        os.utime(source, (2, 2))
+        os.utime(source, (1, 1))
+        os.utime(table, (2, 2))
+        os.utime(chart_png, (2, 2))
+        os.utime(chart_pdf, (2, 2))
         os.utime(summary, (3, 3))
+        (good / "identifiers.md").write_text(
+            "sha256:" + "a" * 64 + "\n"
+            "10.1234/abcdefghijklmnopqrstuvwxyz123456789\n"
+            "https://example.org/path/abcdefghijklmnopqrstuvwxyz123456789\n"
+            "123e4567-e89b-12d3-a456-426614174000\n",
+            encoding="utf-8",
+        )
+        (good / "settings.py").write_text(
+            'api_key = os.getenv("API_KEY")\n'
+            'password = "replace_me"\n'
+            "this_is_a_long_descriptive_runtime_identifier_without_a_secret = True\n",
+            encoding="utf-8",
+        )
+        (good / "package-lock.json").write_text(
+            '{"integrity":"sha512-AbCdEfGhIjKlMnOpQrStUvWxYz0123456789+/="}\n',
+            encoding="utf-8",
+        )
         good_result = subprocess.run(
-            [sys.executable, str(final_check), str(good), "--json"],
+            [sys.executable, str(check_command), "check-project", str(good), "--json"],
             cwd=ROOT,
             capture_output=True,
             text=True,
@@ -955,16 +1227,84 @@ def main() -> int:
             good_payload = {}
         if good_result.returncode or not good_payload.get("ok"):
             problems.append("final project check self-test rejected a valid fixture")
+        good_findings = good_payload.get("findings", [])
+        good_errors = [item for item in good_findings if item.get("level") == "ERROR"]
+        good_checks = {item.get("check") for item in good_findings}
+        if good_errors:
+            problems.append("final project check self-test emitted errors for legal helpers/formats")
+        if "figures.duplicate_number" in good_checks:
+            problems.append("final project check self-test rejected PNG/PDF with same Fig stem")
+        if not {
+            "results.source_mtime_older_than_outputs",
+            "provenance.receipt_missing",
+        } <= good_checks:
+            problems.append("final project check self-test did not downgrade mtime to warnings")
+        if {"secrets.named_credential", "secrets.high_entropy", "naming.legacy_version"} & good_checks:
+            problems.append("final project check self-test failed pruning or benign-token filters")
+
+        escape = good / ".epiagentkit-check.json"
+        escape.write_text(
+            json.dumps({"provenance_receipt": "../outside-receipt.json"}),
+            encoding="utf-8",
+        )
+        escape_result = run_epiagentkit(["check-project", str(good), "--json"])
+        try:
+            escape_payload = json.loads(escape_result.stdout)
+        except json.JSONDecodeError:
+            escape_payload = {}
+        if escape_result.returncode != 1 or "contract.invalid" not in {
+            item.get("check") for item in escape_payload.get("findings", [])
+        }:
+            problems.append("final project check self-test allowed provenance path escape")
+        escape.write_text(
+            json.dumps({"code_helper_files": ["custom_helper.py"]}),
+            encoding="utf-8",
+        )
+
+        receipt_bad = root / "receipt_bad"
+        (receipt_bad / "07_paper").mkdir(parents=True)
+        receipt_source = receipt_bad / "07_paper/results.yaml"
+        receipt_summary = receipt_bad / "07_paper/0_result_summaries.md"
+        receipt_source.write_text("schema_version: 1\n", encoding="utf-8")
+        receipt_summary.write_text("summary\n", encoding="utf-8")
+        (receipt_bad / "07_paper/results.provenance.json").write_text(
+            json.dumps(
+                {
+                    "files": {
+                        "07_paper/results.yaml": "0" * 64,
+                        "07_paper/0_result_summaries.md": hashlib.sha256(
+                            receipt_summary.read_bytes()
+                        ).hexdigest(),
+                    }
+                }
+            ),
+            encoding="utf-8",
+        )
+        receipt_result = run_epiagentkit(
+            ["check-project", str(receipt_bad), "--json"]
+        )
+        try:
+            receipt_payload = json.loads(receipt_result.stdout)
+        except json.JSONDecodeError:
+            receipt_payload = {}
+        if receipt_result.returncode != 1 or "provenance.hash_mismatch" not in {
+            item.get("check") for item in receipt_payload.get("findings", [])
+        }:
+            problems.append("final project check self-test missed provenance hash mismatch")
 
         bad = root / "bad"
         (bad / "01_data/rawdata").mkdir(parents=True)
         (bad / "02_code").mkdir()
         (bad / "03_tables").mkdir()
+        (bad / "04_figures").mkdir()
         (bad / "07_paper").mkdir()
         (bad / "01_data/rawdata/source.csv").write_text("id\n1\n", encoding="utf-8")
         (bad / "02_code/01_clean.R").write_text("x <- 1\n", encoding="utf-8")
         (bad / "02_code/03_model.R").write_text("x <- 2\n", encoding="utf-8")
+        (bad / "02_code/unexpected.py").write_text("VALUE = 1\n", encoding="utf-8")
         bad_table = bad / "03_tables/Table1_result.xlsx"
+        (bad / "04_figures/Fig1_flow.png").write_bytes(b"png")
+        (bad / "04_figures/Fig1_other.pdf").write_bytes(b"pdf")
         bad_source = bad / "07_paper/results.yaml"
         bad_summary = bad / "07_paper/0_result_summaries.md"
         bad_table.write_bytes(b"xlsx")
@@ -993,7 +1333,7 @@ def main() -> int:
             check=True,
         )
         bad_result = subprocess.run(
-            [sys.executable, str(final_check), str(bad), "--json"],
+            [sys.executable, str(check_command), "check-project", str(bad), "--json"],
             cwd=ROOT,
             capture_output=True,
             text=True,
@@ -1008,8 +1348,9 @@ def main() -> int:
         required_checks = {
             "rawdata.worktree_modified",
             "code.numbering_gap",
+            "code.unnumbered_script",
+            "figures.duplicate_number",
             "naming.legacy_version",
-            "results.source_older_than_outputs",
             "logs.abnormal_term",
             "secrets.named_credential",
             "secrets.high_entropy",
@@ -1018,6 +1359,16 @@ def main() -> int:
             problems.append("final project check self-test missed a required failure class")
         if secret_value in bad_result.stdout or secret_value in bad_result.stderr:
             problems.append("final project check self-test exposed a credential value")
+        named_secret = [
+            item
+            for item in bad_payload.get("findings", [])
+            if item.get("check") == "secrets.named_credential"
+        ]
+        if not named_secret or not all(
+            item.get("path") and item.get("key") and "@" in item["key"]
+            for item in named_secret
+        ):
+            problems.append("final project check self-test omitted secret path/key/line")
 
     for skill_dir in (ROOT / "skills").iterdir():
         if not skill_dir.is_dir():

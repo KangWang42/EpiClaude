@@ -2,6 +2,8 @@
 
 面向流行病学 / 卫生统计研究的 Claude Code 与 Codex 共用规则和技能集（R + Python），覆盖从项目初始化、统计分析、发表级图表、论文写作、咨询交付到项目审查的完整研究流程。
 
+完整项目框架按需启用：简单作业、单次处理、快速核验或少量输出使用轻量任务模式，只执行必要 skill 与最小验证，不自动创建七层目录、项目账本或运行项目签发；明确初始化、投稿/咨询交付，或已位于标准项目中时才采用完整契约。
+
 A shared Claude Code and Codex rule/skill ecosystem for epidemiology and biostatistics research, covering project scaffolding, statistical analysis, publication-quality figures, manuscript writing, consulting deliverables, and project auditing.
 
 ## 仓库内容
@@ -80,6 +82,9 @@ python ~/epiagentkit/scripts/epiagentkit.py doctor --target all
 # 查看预设与可安装技能
 python ~/epiagentkit/scripts/epiagentkit.py list
 
+# 对研究项目运行确定性签发预检
+python ~/epiagentkit/scripts/epiagentkit.py check-project <项目根>
+
 # 只同步部分 Codex skills
 python ~/epiagentkit/scripts/epiagentkit.py sync --target codex \
   --components skills --skills sysu-ppt,svg-diagrams
@@ -127,10 +132,10 @@ python scripts/epiagentkit.py doctor --target all
 交付前另运行确定性终检，不注册为自动修复 hook：
 
 ```bash
-python hooks/final_project_check.py <项目根>
+python scripts/epiagentkit.py check-project <项目根>
 ```
 
-它检查原始目录的 Git 工作区修改、编号断层、旧版本命名、结果单源时间链、日志中的 error/warning/traceback/failed/NaN，以及疑似凭证或高熵秘密。秘密检查只报告文件和键名，不输出值。双端 Stop hook 的一致行为尚未作为稳定契约验证，因此默认不注册 Stop，不在失败后自动循环修复；PostToolUse 仅报告已发生事件，不能撤销副作用。
+它检查原始目录的 Git 工作区修改、编号/stem、合法 helper、旧版本命名、provenance receipt 或降级 mtime 提示、日志异常，以及疑似凭证或高熵秘密。秘密检查只报告文件、键路径和行号，不输出值；raw roots、`09_backup`、`.git` 与大型缓存会在进入目录前剪枝。双端 Stop hook 的一致行为尚未作为稳定契约验证，因此默认不注册 Stop，不在失败后自动循环修复；PostToolUse 仅报告已发生事件，不能撤销副作用。
 
 （"多行 `Rscript -e` 会 segfault、须写成 `.R` 文件运行"这条已直接写进 `CLAUDE.md` 的代码必跑红线，常驻每会话上下文，无需单设 hook。）
 

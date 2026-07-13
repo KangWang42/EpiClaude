@@ -65,11 +65,25 @@
       "excluded": ["r-biostats", "academic-publishing"]
     },
     {
+      "id": "rapid_doi_verification",
+      "prompt": "快速核验这条 DOI 的题名、作者和撤稿状态，不做系统综述",
+      "primary": "evidence-research",
+      "companions": [],
+      "excluded": ["academic-publishing", "r-biostats"]
+    },
+    {
       "id": "consulting_after_analysis",
       "prompt": "分析已经完成，请把结果打包成可外发咨询交付物",
       "primary": "consulting-delivery",
       "companions": [],
       "excluded": ["project-init"]
+    },
+    {
+      "id": "python_consulting_after_analysis",
+      "prompt": "Python 分析已经验证完成，请打包成客户可复现的咨询交付物",
+      "primary": "consulting-delivery",
+      "companions": [],
+      "excluded": ["r-biostats", "project-init"]
     },
     {
       "id": "ecg_python_analysis",

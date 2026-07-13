@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # PostToolUse(Bash)：按项目隔离的内容指纹检测 04_figures/ 新生成或修改的图。
-# 逐元素自检清单，逼主模型 Read 该图逐条判断。hook 不做视觉判断（命令看不了图），
+# 逐元素自检清单，要求主模型用当前平台的视觉检查工具打开图并逐条判断。hook 不做视觉判断，
 # 只负责"逮住出图事件 + 强制自检"，判断交给视觉能力强的主模型。
 hook_dir=$(cd "$(dirname "$0")" && pwd)
 new=$(python "$hook_dir/_file_state.py" \
@@ -8,7 +8,7 @@ new=$(python "$hook_dir/_file_state.py" \
 
 if [ -n "$new" ]; then
   notice=$({
-    echo "检测到新生成/修改的图，按 publication-figures §12ter 逐项自检（先 Read 该 PNG/PDF，逐条判，任一不过=回代码层改重出）："
+    echo "检测到新生成/修改的图，按 publication-figures §12ter 逐项自检（先使用当前平台的视觉检查工具打开 PNG/PDF，逐条判；任一不过即回代码层修改并重出）："
     printf '%s' "$new" | sed '/^$/d;s/^/  · /'
     echo "① 图例/标签/注释不遮挡任何数据（线/点/柱/误差棒）；遮挡即不合格"
     echo "② 比例尺寸合适，无大片空边、无元素被裁切（轴/标题/图例/刻度完整）"

@@ -157,6 +157,7 @@ init_project <- function(name,
       sprintf("## %s · 项目启动", today),
       "",
       sprintf("**决策**：项目类型 = %s，主分析计划 = [待用户确认]", type_name),
+      "**证据ID**：[如适用，填写 evidence-research 的 EVID-…；无则写‘不适用’]",
       "**原因**：[待用户填写]",
       "**放弃方案**：[待用户填写]"),
     file.path(proj, "DECISIONS.md"), useBytes = TRUE

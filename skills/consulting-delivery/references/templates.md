@@ -34,17 +34,11 @@ if (getRversion() < "4.2.0") {
   warning("建议使用 R ≥ 4.2.0；当前：", getRversion())
 }
 
-required_pkgs <- c(
-  "tidyverse", "readxl", "writexl",
-  "survival", "survminer", "broom",
-  "gtsummary", "flextable",
-  "ggsci", "ragg"
-)
+required_pkgs <- character()  # 按包内脚本实际依赖填写，不凭模板猜包
 missing_pkgs <- setdiff(required_pkgs, rownames(installed.packages()))
 if (length(missing_pkgs) > 0) {
-  message("缺少依赖包：", paste(missing_pkgs, collapse = ", "))
-  message("自动安装中...")
-  install.packages(missing_pkgs, repos = "https://cloud.r-project.org")
+  stop("缺少依赖包：", paste(missing_pkgs, collapse = ", "),
+       "。请按交付包依赖清单安装后重跑。")
 }
 
 # 顺序执行脚本 -----------------------------------------------
@@ -52,14 +46,13 @@ scripts <- list.files("code", pattern = "^[0-9]{2}_.*\\.R$", full.names = TRUE) 
 
 set.seed(123)
 
-for (s in scripts) {
-  cat("\n执行：", s, "\n")
-  t0 <- Sys.time()
-  source(s, encoding = "UTF-8", echo = FALSE)
-  cat("完成（", round(difftime(Sys.time(), t0, units = "secs"), 1), "秒）\n")
+for (script in scripts) {
+  message("执行：", script)
+  source(script, encoding = "UTF-8", echo = FALSE)
 }
 
-cat("\n全部分析已复现完成；表格见 tables/，图件见 figures/\n")
+writeLines(capture.output(sessionInfo()), "environment.txt")
+message("全部分析已复现完成；表格见 tables/，图件见 figures/")
 ```
 
 `required_pkgs` 按包内脚本实际依赖增删。

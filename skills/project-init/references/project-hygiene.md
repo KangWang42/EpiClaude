@@ -1,10 +1,10 @@
 # 项目目录、命名与归档契约
 
-本 reference 是研究项目结构细则的单源。初始化、分析、写作、交付和审查 skill 均引用它，不在全局入口重复维护。
+本 reference 是正式研究项目结构细则的单源。初始化、项目化分析、写作、交付和审查 skill 均引用它，不在全局入口重复维护。简单作业、单次处理、快速核验或少量输出不适用本契约，也不得为满足本契约自动补建项目骨架。
 
 ## 1. 活跃工作区
 
-- 项目根只保留 `CLAUDE.md`、`PROTOCOL.md`、`SAP.md`、`SESSION_LOG.md`、`DECISIONS.md`、`BACKLOG.md` 与标准编号目录。
+- 项目根只保留规则/方案/日志文件、`.gitignore`、`.Rproj`、`.epiagentkit-raw-roots`、可选 `.epiagentkit-check.json` 与标准编号目录；具体骨架以 `project-init` 模板为准。
 - 临时、诊断、迁移和探索产物不得散落在根目录；一次性脚本完成后移入 `09_backup/<日期>_scripts_oneoff/`。
 - 同一交付物只保留一组稳定语义名当前版。不得累积 `v2`、`new`、`final`、`最终版`、`完善版` 等并列文件。
 - 移动产物时同步修改生成脚本的输出路径与正文引用；完成后全文搜索旧路径、旧编号与散落残留。
@@ -63,8 +63,11 @@
 
 ## 7. 收尾核对
 
+- 签发前运行 `python <EpiAgentKit仓库>/scripts/epiagentkit.py check-project <项目根>`；ERROR 必须修复，基于 mtime 或缺 provenance 的 WARN 需解释但不冒充确定性失败。
 - 所有代码、表、图编号连续，生成脚本与正文引用同步。
 - 有序分类水平来自 `conventions.R`，脚本不散写 level、配色、P 值格式或 registry。
 - 当前工作区每类交付物只有一组稳定名当前版，旧版批次有 MANIFEST 与 INDEX 记录。
 - 一次性脚本、退役文件和探索结果已归档；根目录无零散产物。
 - 统计图、非统计图解、论文、报告与咨询包分别通过对应 skill 的终检。
+
+项目可在根目录用可选 `.epiagentkit-check.json` 扩展合法 helper、剪枝目录或指定 provenance receipt；默认契约集中在 `hooks/final_project_check.py::DEFAULT_CONTRACT`，阶段脚本不得另写一套允许清单。

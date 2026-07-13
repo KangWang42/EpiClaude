@@ -29,6 +29,16 @@ description: |
 
 **缺失关键文件就已经是扣分项**，要写入"Problems found"。
 
+### 1.1bis 确定性预检（强制）
+
+在进入六层人工审查前运行：
+
+```bash
+python <EpiAgentKit仓库>/scripts/epiagentkit.py check-project <项目根> --json
+```
+
+把 findings 映射到对应 Layer。任何 ERROR 都阻止最终签发；WARN 必须解释，但不得把无 provenance 时的 mtime 提示升级成确定性不一致。该命令只做预检，不替代代码实跑、数字矩阵或科学判断，不注册为 Stop hook。
+
 ### 1.2 问用户（强制）
 
 如果用户只说"检查一下"没指定范围，**必须先问**：
@@ -81,7 +91,7 @@ description: |
 ### TODO 清单
 
 - [ ] 目录结构符合七层规范（01_data / 02_code / 03_tables / 04_figures / 05_reports / 06_results / 07_paper / 09_backup）
-- [ ] `01_data/rawdata/` 存在且最近无修改时间变动
+- [ ] `01_data/rawdata/` 及额外声明的 raw roots 存在，`check-project` 未发现 Git 工作区修改；非 Git 数据另核来源与只读证据
 - [ ] `02_code/` 内脚本**全部**按 `NN_描述.R` 编号且连续无断号；无 `test.R`、`final.R`、`temp.R`
 - [ ] `02_code/` 编号脚本数 ≤ 10（config / conventions / lib / run_pipeline 与 vendored/ 不计）；探索 / 一次性脚本不在 `02_code/`（应在 `09_backup/`）
 - [ ] `03_tables/` / `04_figures/` 编号按论文行文顺序连续无断号；`TableS{N}` / `FigS{N}` 在 `supplementary/`；无 `Table_xxx` / `Fig_xxx` 无编号残留；交付 xlsx 内无 cover / 说明类解说性 sheet
@@ -95,7 +105,7 @@ description: |
 
 - 根目录存在 > 3 个散落非规范文件
 - `02_code/` 存在无编号脚本
-- 原始数据被修改（文件 mtime 晚于项目开始日期）
+- 原始数据有 Git 修改、来源哈希变化或其他可核验证据；不得只凭 mtime 判定
 - `09_backup/` 和活跃目录共存同名文件但内容不同
 
 ### 自动修复动作

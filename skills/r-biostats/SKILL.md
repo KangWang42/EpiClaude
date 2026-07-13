@@ -10,7 +10,7 @@ description: |
 
 > **上游原则**：本 skill 是执行层，开工先对齐 `biostat-principles` 六原则；规则冲突按全局 `CLAUDE.md` 的唯一优先级处理。
 > **核心工作模式**：`PLAN → CODE → RUN → VERIFY → DOC` 五阶状态机，每阶必须有显式验证后才能进入下一阶。
-> **项目卫生**：目录、连续编号、表图、registry、归档与 BACKLOG 细则统一读取 `../project-init/references/project-hygiene.md`。
+> **任务形态**：简单作业、单次处理或少量输出走 `biostat-principles` §8 轻量任务通道；不得自动创建正式项目骨架或账本。已在正式项目内时，目录、连续编号、表图、registry、归档与 BACKLOG 细则读取 `../project-init/references/project-hygiene.md`。
 
 ---
 
@@ -23,7 +23,7 @@ description: |
     ↓
 [PLAN]   列出口径、输入输出、分析方法、验证标准     ←─┐ 不通过回到此处
     ↓ 用户确认或 trivial 豁免                          │
-[CODE]   编号命名、单一职责、最小实现                  │
+[CODE]   单一职责、最小实现；正式项目再编号             │
     ↓                                                  │
 [RUN]    Rscript 实际执行，不跳过                      │
     ↓ 报错 → 修 → 重跑（最多 2 次）──────────────────┘
@@ -31,7 +31,7 @@ description: |
 [VERIFY] 检查输出文件、数字范围、与预期一致
     ↓ 不通过回到 CODE                                  
     ↓                                                  
-[DOC]    更新 session_log / decisions / result_summaries
+[DOC]    正式项目更新账本；轻量任务简述输入、输出与验证
     ↓
 [完成]
 ```
@@ -41,10 +41,10 @@ description: |
 | 阶段 | 不允许进入下一阶的情况 |
 |------|---------------------|
 | PLAN | 口径有歧义、输入路径不明、没写验证标准 |
-| CODE | 脚本超过 300 行但没拆分、用了 for 循环/绝对路径/print 调试、没编号命名 |
+| CODE | 脚本超过 300 行但没拆分、用了不必要的 for 循环/绝对路径/print 调试；正式项目脚本未按项目规则编号 |
 | RUN | 没真跑过、有 warning 没处理、报错被 `tryCatch` 吞掉 |
 | VERIFY | 样本量与预期不符、数字明显异常（NA 爆表、HR=Inf）、图表留白/乱码/空白页 |
-| DOC | session_log 没更新、结果变了但 results.yaml（→派生 md）没改 |
+| DOC | 正式项目的 session_log 未更新，或结果变了但 results.yaml（→派生 md）没改；轻量任务未说明输入、输出与验证 |
 
 ### 失败回退规则
 
@@ -58,7 +58,7 @@ description: |
 
 **每次分析开头必须输出此块**（trivial 任务可压缩为一行）：
 
-开工前先读项目 `PROTOCOL.md`、`SAP.md`、`CLAUDE.md` 与 `DECISIONS.md`。新项目的方案或 SAP 仍为草案、主要终点/分析人群/主模型未确认，或实际做法偏离 SAP 时，先向用户确认并记录偏离；不得先看结果再把主要分析写成“预设”。
+正式项目开工前先读项目 `PROTOCOL.md`、`SAP.md`、`CLAUDE.md` 与 `DECISIONS.md`。方案或 SAP 仍为草案、主要终点/分析人群/主模型未确认，或实际做法偏离 SAP 时，先向用户确认并记录偏离；不得先看结果再把主要分析写成“预设”。轻量任务只读取实际存在且与请求有关的说明文件，不补建缺失的项目文档。
 
 ```
 【口径】

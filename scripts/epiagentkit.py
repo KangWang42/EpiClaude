@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Unified EpiAgentKit entry point: install, sync, doctor, and list."""
+"""Unified EpiAgentKit entry point for configuration and project checks."""
 
 from __future__ import annotations
 
 import argparse
 import hashlib
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -35,6 +36,7 @@ Usage:
   python scripts/epiagentkit.py install [configure options]
   python scripts/epiagentkit.py sync [sync options]
   python scripts/epiagentkit.py doctor [doctor options]
+  python scripts/epiagentkit.py check-project [project] [--json]
   python scripts/epiagentkit.py list
 
 Run a subcommand with --help for details.
@@ -272,6 +274,12 @@ def show_list(root: Path) -> int:
     return 0
 
 
+def run_check_project(argv: list[str]) -> int:
+    checker = Path(__file__).resolve().parents[1] / "hooks" / "final_project_check.py"
+    result = subprocess.run([sys.executable, str(checker), *argv])
+    return result.returncode
+
+
 def main(argv: list[str] | None = None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
     if not args or args[0] in {"-h", "--help"}:
@@ -285,6 +293,8 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if command == "doctor":
         return run_doctor(rest)
+    if command == "check-project":
+        return run_check_project(rest)
     if command == "list":
         return show_list(Path(__file__).resolve().parents[1])
     raise SystemExit(f"Unknown command: {command}\n\n{HELP}")
