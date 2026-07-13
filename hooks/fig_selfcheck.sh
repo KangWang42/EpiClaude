@@ -25,7 +25,7 @@ if [ "$(wc -l < "$state" 2>/dev/null || echo 0)" -gt 600 ]; then
 fi
 
 if [ -n "$new" ]; then
-  {
+  notice=$({
     echo "检测到新生成/修改的图，按 publication-figures §12ter 逐项自检（先 Read 该 PNG/PDF，逐条判，任一不过=回代码层改重出）："
     printf '%s' "$new" | sed '/^$/d;s/^/  · /'
     echo "① 图例/标签/注释不遮挡任何数据（线/点/柱/误差棒）；遮挡即不合格"
@@ -33,7 +33,12 @@ if [ -n "$new" ]; then
     echo "③ 每个元素清晰可读（嵌入尺寸下字号够大）"
     echo "④ 数值可溯源不硬编码、与 results.yaml 一致；无统计假象（全同值/恒 ±0.707 等）"
     echo "⑤ 图型匹配数据、与同篇其它图 theme/配色/布局一致、多结局不漏"
-  } | python "$(dirname "$0")/_emit_notice.py"
+  })
+  if [ "${EPICLAUDE_PLAIN_NOTICE:-0}" = "1" ]; then
+    printf '%s\n' "$notice"
+  else
+    printf '%s\n' "$notice" | python "$(dirname "$0")/_emit_notice.py"
+  fi
   exit $?
 fi
 exit 0

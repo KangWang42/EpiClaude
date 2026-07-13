@@ -12,6 +12,7 @@ from pathlib import Path
 
 from sync_user_configs import (
     MANAGED_HOOK_SCRIPTS,
+    REGISTERED_HOOK_SCRIPTS,
     SKILL_MANIFEST,
     hook_command,
     mirror_tree,
@@ -26,6 +27,35 @@ LINE_BUDGET = 200
 
 def read(relative: str) -> str:
     return (ROOT / relative).read_text(encoding="utf-8")
+
+
+def run_hook_script(
+    script: Path,
+    cwd: Path,
+    payload: str = "{}",
+    environment: dict[str, str] | None = None,
+) -> subprocess.CompletedProcess[str]:
+    env = os.environ.copy()
+    if environment:
+        env.update(environment)
+    if os.name == "nt":
+        wrapper = ROOT / "hooks" / "run_hook.cmd"
+        command: str | list[str] = (
+            f'cmd.exe /d /s /c call "{wrapper}" "{script}" "claude"'
+        )
+    else:
+        command = ["bash", str(script)]
+        env["EPICLAUDE_HOOK_CLIENT"] = "claude"
+    return subprocess.run(
+        command,
+        cwd=cwd,
+        input=payload,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        env=env,
+    )
 
 
 def main() -> int:
@@ -99,6 +129,15 @@ def main() -> int:
         ),
         "hooks/fig_selfcheck.sh": ('_emit_notice.py"',),
         "hooks/check_results_rds.sh": ('_emit_notice.py"',),
+        "hooks/post_edit_checks.sh": (
+            'run_check "check_r_syntax.sh"',
+            'run_check "scan_ai_trace.sh"',
+        ),
+        "hooks/post_bash_checks.sh": (
+            'collect_notice "fig_selfcheck.sh"',
+            'collect_notice "check_results_rds.sh"',
+            '_emit_notice.py"',
+        ),
         "skills/svg-diagrams/SKILL.md": (
             "序号与标题第一行垂直居中对齐",
             "包含关系图",
@@ -264,12 +303,22 @@ def main() -> int:
                 for command in commands
                 if any(name in command for name in MANAGED_HOOK_SCRIPTS)
             ]
+            registered = [
+                command
+                for command in commands
+                if any(name in command for name in REGISTERED_HOOK_SCRIPTS)
+            ]
+            legacy = MANAGED_HOOK_SCRIPTS - REGISTERED_HOOK_SCRIPTS
             if first != second:
                 problems.append("hook sync self-test: repeated install is not idempotent")
             if second.get("model") != "custom-model" or "custom-quality-check" not in commands:
                 problems.append("hook sync self-test: unrelated settings were not preserved")
-            if len(managed) != len(MANAGED_HOOK_SCRIPTS):
+            if len(managed) != len(REGISTERED_HOOK_SCRIPTS):
                 problems.append("hook sync self-test: managed hook count is incorrect")
+            if len(registered) != len(REGISTERED_HOOK_SCRIPTS):
+                problems.append("hook sync self-test: registered hook count is incorrect")
+            if any(any(name in command for name in legacy) for command in commands):
+                problems.append("hook sync self-test: legacy checks remain separately registered")
             if any("run_hook.cmd" not in command for command in managed):
                 problems.append("hook sync self-test: Windows hook bypasses run_hook.cmd")
             if any(not command.startswith("cmd.exe /d /s /c call ") for command in managed):
@@ -304,6 +353,57 @@ def main() -> int:
             payload = {}
         if result.returncode or expected_key not in payload:
             problems.append(f"hook notice self-test: invalid {client} success payload")
+
+    with tempfile.TemporaryDirectory(prefix="epiclaude_hook_aggregate_") as directory:
+        project = Path(directory) / "project"
+        state = Path(directory) / "state"
+        code = project / "02_code"
+        figures = project / "04_figures"
+        results = project / "06_results"
+        code.mkdir(parents=True)
+        figures.mkdir()
+        results.mkdir()
+        good_r = code / "01_good.R"
+        bad_r = code / "02_bad.R"
+        bad_text = project / "report.md"
+        good_r.write_text("x <- 1\n", encoding="utf-8")
+        bad_r.write_text("x <-\n", encoding="utf-8")
+        bad_text.write_text("AI辅助\n", encoding="utf-8")
+        (figures / "Fig1_test.png").write_bytes(b"png fixture")
+        (results / "model.rds").write_bytes(b"rds fixture")
+
+        edit_hook = ROOT / "hooks" / "post_edit_checks.sh"
+        bash_hook = ROOT / "hooks" / "post_bash_checks.sh"
+
+        def edit_payload(path: Path) -> str:
+            return json.dumps({"tool_input": {"file_path": path.as_posix()}})
+
+        good = run_hook_script(edit_hook, project, edit_payload(good_r))
+        bad_syntax = run_hook_script(edit_hook, project, edit_payload(bad_r))
+        bad_trace = run_hook_script(edit_hook, project, edit_payload(bad_text))
+        if good.returncode or good.stdout.strip() or good.stderr.strip():
+            problems.append("aggregate edit hook self-test: valid R file did not pass cleanly")
+        if bad_syntax.returncode != 2 or "R 语法检查未过" not in bad_syntax.stderr:
+            problems.append("aggregate edit hook self-test: R syntax failure was not preserved")
+        if bad_trace.returncode != 2 or "生成过程痕迹" not in bad_trace.stderr:
+            problems.append("aggregate edit hook self-test: text trace failure was not preserved")
+
+        hook_env = {"EPICLAUDE_STATE_HOME": str(state)}
+        combined = run_hook_script(bash_hook, project, environment=hook_env)
+        repeated = run_hook_script(bash_hook, project, environment=hook_env)
+        try:
+            combined_payload = json.loads(combined.stdout)
+            combined_message = combined_payload["hookSpecificOutput"]["additionalContext"]
+        except (json.JSONDecodeError, KeyError, TypeError):
+            combined_message = ""
+        if (
+            combined.returncode
+            or "检测到新生成/修改的图" not in combined_message
+            or "检测到 06_results/ 新写入 .rds" not in combined_message
+        ):
+            problems.append("aggregate Bash hook self-test: combined notice lost a check")
+        if repeated.returncode or repeated.stdout.strip() or repeated.stderr.strip():
+            problems.append("aggregate Bash hook self-test: repeated notice was not deduplicated")
 
     for skill_dir in (ROOT / "skills").iterdir():
         if not skill_dir.is_dir():

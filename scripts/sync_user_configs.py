@@ -21,6 +21,8 @@ COPY_IGNORES = {"__pycache__", ".DS_Store"}
 VALID_COMPONENTS = {"rules", "skills", "hooks"}
 MANAGED_HOOK_SCRIPTS = {
     "protect_rawdata.sh",
+    "post_edit_checks.sh",
+    "post_bash_checks.sh",
     "check_r_syntax.sh",
     "scan_ai_trace.sh",
     "fig_selfcheck.sh",
@@ -40,18 +42,23 @@ HOOK_DEFINITIONS = {
         (
             "edit",
             (
-                ("check_r_syntax.sh", 30, "R 语法检查"),
-                ("scan_ai_trace.sh", 15, "扫 emoji/AI 痕迹"),
+                ("post_edit_checks.sh", 45, "检查 R 语法与文本规范"),
             ),
         ),
         (
             "Bash",
             (
-                ("fig_selfcheck.sh", 20, "检测新图并执行出图自检"),
-                ("check_results_rds.sh", 15, "检查 06_results rds"),
+                ("post_bash_checks.sh", 40, "检查图件与结果格式"),
             ),
         ),
     ),
+}
+
+REGISTERED_HOOK_SCRIPTS = {
+    script
+    for definitions in HOOK_DEFINITIONS.values()
+    for _matcher, scripts in definitions
+    for script, _timeout, _status in scripts
 }
 
 
