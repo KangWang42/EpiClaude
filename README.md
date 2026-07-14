@@ -129,7 +129,9 @@ python scripts/epiagentkit.py doctor --target all
 
 ## 推荐 Hook 配置（可选，把硬红线交给 harness 强制）
 
-客户端只注册三个聚合 hook：一个 PreToolUse 原始数据保护、一个编辑后代码/文本检查、一个命令后图件/结果检查。同步器会复制脚本并自动合并配置：Claude Code 写入 `~/.claude/settings.json`，Codex 写入 `~/.codex/hooks.json`，不会覆盖模型、权限或其他自定义 hook。修改前会在同目录保留稳定的 `.epiagentkit.bak` 配置备份。Codex 修改 hook 后需在 `/hooks` 中重新审查并信任；其发现和信任规则见官方 [Hooks](https://learn.chatgpt.com/docs/hooks)。
+客户端只注册三个聚合 hook：一个 PreToolUse 原始数据保护、一个编辑后代码/文本检查、一个命令后图件/结果检查。同步器会复制脚本并自动合并配置：Claude Code 写入 `~/.claude/settings.json`，Codex 写入 `~/.codex/hooks.json`，不会覆盖模型、权限或无关自定义 hook。修改前会在同目录保留第一次变更前的稳定 `.epiagentkit.bak` 配置备份。Codex 修改 hook 后需在 `/hooks` 中重新审查并信任；其发现和信任规则见官方 [Hooks](https://learn.chatgpt.com/docs/hooks)。
+
+安装或同步 hooks 前会按事件、matcher、命令名和本地脚本内容遍历现有注册，识别原始数据保护、R 语法、AI 痕迹、图件自检和 `.rds` 检查五类功能冲突。冲突注册以 EpiAgentKit 为准并从本地配置删除；冲突脚本只有位于对应客户端 `hooks/` 目录、未被保留注册引用且不属于待安装文件时才永久删除，不保留脚本内容副本。Codex 的非冲突 inline hooks 会从 `config.toml` 迁移到 `hooks.json`，避免同一配置层同时加载两种 Hook 来源；无关 Hook 和其他配置保持不变。删除清单写入 `~/.epiagentkit/hook-conflict-reports/<UTC批次>/manifest.json`，`--dry-run` 只预览。
 
 - `protect_rawdata.sh`（PreToolUse）：canonicalize 编辑路径并拦截 `01_data/rawdata/` 及项目 `.epiagentkit-raw-roots` 声明的额外原始根。声明文件每行一个项目相对路径，支持中文、空格、反斜杠与 `../` 归一化。该 hook 不解析任意 shell/Python/PowerShell 写入，不能替代 ACL、只读副本和终检。
 - `check_r_syntax.sh`（PostToolUse）：`.R` 文件存盘即 `parse()` 语法检查，出错当场反馈给模型修。

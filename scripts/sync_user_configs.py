@@ -28,6 +28,7 @@ from config_core import (
     load_json,
     resolve_codex_skill_dirs,
 )
+from hook_conflicts import reconcile_hook_conflicts
 from skill_conflicts import remove_skill_conflicts, scan_skill_conflicts
 
 CODEX_EXCLUDES = {"skill-creator"}
@@ -473,7 +474,7 @@ def sync_hook_config(
     print(f"MERGE  EpiAgentKit hooks -> {config_path}")
     if dry_run:
         return
-    if config_path.exists():
+    if config_path.exists() and not backup.exists():
         print(f"BACKUP {config_path} -> {backup}")
         atomic_copy_file(config_path, backup)
     atomic_write_json(config_path, updated)
@@ -653,6 +654,14 @@ def main(argv: list[str] | None = None, prog: str | None = None) -> None:
                 prune_stale=prune_stale,
             )
         if "hooks" in components:
+            reconcile_hook_conflicts(
+                platform="claude",
+                json_config=claude_home / "settings.json",
+                hooks_dir=claude_home / "hooks",
+                home=home,
+                protected_names={item.name for item in (root / "hooks").iterdir()},
+                dry_run=args.dry_run,
+            )
             sync_hooks(root / "hooks", claude_home / "hooks", args.dry_run)
             sync_hook_config(
                 "claude",
@@ -690,6 +699,15 @@ def main(argv: list[str] | None = None, prog: str | None = None) -> None:
                     root, codex_home / "skills", args.dry_run
                 )
         if "hooks" in components:
+            reconcile_hook_conflicts(
+                platform="codex",
+                json_config=codex_home / "hooks.json",
+                inline_config=codex_home / "config.toml",
+                hooks_dir=codex_home / "hooks",
+                home=home,
+                protected_names={item.name for item in (root / "hooks").iterdir()},
+                dry_run=args.dry_run,
+            )
             sync_hooks(root / "hooks", codex_home / "hooks", args.dry_run)
             sync_hook_config(
                 "codex",
