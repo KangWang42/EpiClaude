@@ -28,7 +28,8 @@ scripts/           双平台安装、同步与验收工具
 | | `r-biostats` | R 统计分析执行层：PLAN-CODE-RUN-VERIFY-DOC 五阶状态机，描述统计 / 回归 / 生存 / 中介 / Meta |
 | | `python-ecg-analysis` | 通用 Python ECG 预处理、质量控制、纵向对齐、临床结局连接与患者级建模门禁 |
 | | `publication-figures` | 发表级图件规范（mm 尺寸 / 字体嵌入 / 期刊配色）+ 约 180 种图选型画廊 + 170 余套配方代码 |
-| | `svg-diagrams` | 论文、报告与 PPT 的 SVG 原生流程图、结构图、技术路线、包含关系图和机制示意，含对齐、比例与载体适配规范 |
+| | `research-visuals` | 调用 imagegen 为 PPT、论文、标书、报告和网页生成跨载体科研视觉，含视觉简报、美学策略、真实性边界、载体规范与成图验收 |
+| | `svg-diagrams` | 显式矢量需求及 imagegen 不可用或精度不合格时的 SVG 整图回退，含对齐、比例与载体适配规范 |
 | 产出层 | `academic-publishing` | 中英双语论文生成（GB/T 7713 / IMRaD）+ 投稿材料（Cover Letter / 审稿回复 / Highlights），逐部件门控写作 |
 | | `consulting-delivery` | 咨询交付包标准：自包含、一键复现、空 session 实测、终检清单 |
 | | `sysu-ppt` | 组会汇报 PPT 代码化生成（R officer，含可复用模板与工具库） |
@@ -36,7 +37,7 @@ scripts/           双平台安装、同步与验收工具
 | | `epi-project-audit` | 六层项目审查状态机：骨架 / 数据链 / 代码 / 结果一致性 / 科学合理性 / 交付一致性，带数字一致性矩阵 |
 | 工具层 | `docx` `pdf` `pptx` `xlsx` `skill-creator` `git-commit-helper` | 文档处理与技能维护（前五个源自 Anthropic 官方技能库，保留各自 LICENSE） |
 
-组合路由遵循“内容主流程 → 实际文件操作 → 终审”：论文从零生成用 `academic-publishing → academic-humanizer`，需要 Word 时再加 `docx`；已有学术文本编辑以 `academic-humanizer` 为主；报告用 `report-writing → docx`；中大学术汇报用 `sysu-ppt → pptx`；统计分析用 `biostat-principles → r-biostats`，仅实际出图时加 `publication-figures`。`consulting-delivery` 仅用于分析完成后的最终外发打包。
+组合路由遵循“内容主流程 → 视觉或文件操作 → 终审”：论文从零生成用 `academic-publishing → academic-humanizer`，需要 Word 时再加 `docx`；已有学术文本编辑以 `academic-humanizer` 为主；报告用 `report-writing → docx`；中大学术汇报用 `sysu-ppt → pptx`；统计分析用 `biostat-principles → r-biostats`，仅实际出数据图时加 `publication-figures`。PPT、论文、标书、报告和网页的非统计视觉统一走 `research-visuals → imagegen`，只有矢量或精度回退时使用 `svg-diagrams`。`consulting-delivery` 仅用于分析完成后的最终外发打包。
 
 ## 双平台兼容
 
@@ -65,7 +66,7 @@ python ~/epiagentkit/scripts/epiagentkit.py install
 常用命令：
 
 ```bash
-# 只为 Codex 安装 PPT + SVG 图解技能包，不覆盖共享规则与 hooks
+# 只为 Codex 安装 PPT + imagegen 科研视觉技能包，不覆盖共享规则与 hooks
 python ~/epiagentkit/scripts/epiagentkit.py install --target codex --preset ppt --yes
 
 # 为 Claude 与 Codex 完整安装，覆盖同名 EpiAgentKit 规则/skills/hooks，保留无关个人配置
@@ -87,7 +88,7 @@ python ~/epiagentkit/scripts/epiagentkit.py check-project <项目根>
 
 # 只同步部分 Codex skills
 python ~/epiagentkit/scripts/epiagentkit.py sync --target codex \
-  --components skills --skills sysu-ppt,svg-diagrams
+  --components skills --skills sysu-ppt,research-visuals
 ```
 
 只安装一个平台时用 `--target claude` 或 `--target codex`。`--components` 可选 `rules,skills,hooks` 的任意组合，`--skills` 可列出部分技能；部分同步不会删除先前安装的其它托管 skills。Codex skills 布局由 `--codex-layout` 控制：默认 `auto` 与 `agents` 均只使用官方 `~/.agents/skills/`；`codex` 使用兼容目录 `~/.codex/skills/`，`both` 双写，后二者会显示重复技能风险警告，不作为默认安装或验收基线。

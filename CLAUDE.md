@@ -9,7 +9,8 @@ R / Python 流行病学项目的跨任务硬红线。领域流程、模板与实
 - 以研究者“我做了 X”的视角写作，不使用助手口吻。论文、报告与汇报采用学术书面语；标题使用名词短语；英文缩写首次出现给出全称。
 - 分组、终点、纳排、主分析方法或多个合理口径并存时，先向用户澄清，不擅自选择。
 - 不猜 API、版本、包名、数据、研究发现或文献。先读代码、官方文档或可核验来源再断言。
-- 流程图、框架图、机制示意和 PPT 非统计配图必须先触发 `image-diagrams` → `imagegen`，由 AI 直接生成包含完整文字、数字和箭头的整张图。文字或数字较多、图形看似适合 SVG、当前可见技能清单未列出 `image-diagrams`，均不是提前跳过 imagegen 的理由；不得用 Python、PPT 文本框或 SVG 覆盖层给 AI 图补字。只有用户明确要求矢量、实际图像生成工具不可用或调用失败，或整张图经 imagegen 修正后仍无法保证精度时才整图回退 `svg-diagrams`。
+- PPT、论文、标书、报告和网页的非统计视觉资产必须先触发 `research-visuals` → `imagegen`，先按载体、读者、信息功能、证据属性和实际显示尺寸选择视觉语言，再生成整张图。流程、框架、机制、路线和图形摘要由 AI 直接生成包含完整文字、数字和箭头的整图；文字密集、图形看似适合 SVG、当前可见技能清单未列出 `research-visuals`，均不是提前跳过 imagegen 的理由。不得用 Python、PPT/Word 文本框或 SVG 覆盖层给 AI 图补字。真实统计图走 `publication-figures`，科研原始图像不得生成式重绘；只有明确要求矢量、实际工具不可用或整图经 imagegen 修正后仍不准确时才回退 `svg-diagrams`。
+- 报告、Word 表格和 Excel 工作簿在用户或既有模板未指定视觉主题时，一律采用应用默认的白底、黑字和常规字号；层级只靠字重、字号、间距与克制边框。不得自动给标题、表头、首列、汇总行或普通单元格添加深色、彩色、渐变或大面积灰色背景。
 - 输出简洁，不堆套话，不使用 emoji、网络词或 em dash。
 - 产物交付前按主流程 skill 的清单自检；发现一类问题后全文扫描同类并一次清理，交付时先报告已自检项。
 
@@ -21,7 +22,7 @@ R / Python 流行病学项目的跨任务硬红线。领域流程、模板与实
 | 文献依据、最新证据、方法或指标选择 | `evidence-research` | 再进入分析或写作 |
 | R 统计分析、清洗、回归、生存等 | `biostat-principles` → `r-biostats` | 实际出统计图时才加 `publication-figures` |
 | Python ECG 分析 | `python-ecg-analysis` | 实际出统计图时才加 `publication-figures` |
-| 流程、框架、技术路线、机制及 PPT 非统计配图 | `image-diagrams` | 有工具时调用 `imagegen`；不可用或精度不合格时回退 `svg-diagrams` |
+| PPT、论文、标书、报告和网页非统计视觉；流程、框架、路线、机制、图形摘要 | `research-visuals` | 调用 `imagegen`；统计数据图转 `publication-figures`，矢量或精度回退转 `svg-diagrams` |
 | 从零生成论文、部件或投稿材料，或结构性重写 | `academic-publishing` | `academic-humanizer` 终审；实际操作 Word 再加 `docx` |
 | 编辑、润色、压缩已有学术文本 | `academic-humanizer` | 实际操作 Word 再加 `docx` |
 | 报告内容 | `report-writing` | 实际操作 Word 再加 `docx` |

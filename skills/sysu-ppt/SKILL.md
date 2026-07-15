@@ -29,7 +29,7 @@ description: 中山大学学术汇报 PPT 制作技能。基于 officer R 包和
 
 开题/答辩体裁的规范结构、规范用词库（章节名 / 段落标签 / 方法对比表头 / 封面署名 / 结尾语）、设计基调，全部在 `references/defense_blueprint.R` 顶部注释里——写这类 PPT 前先读它，按里面的顺序与措辞填内容，不要自创结构或口语化标签。
 
-**设计基调（两类通用）**：主色中大深绿 `#014924`（章节号 / 标题竖条 / 表头）；强调用克制的红 `#C00000`，全篇仅 1-2 处关键结论，不滥用；每页优先用图（机制图 / 流程图 / 技术路线图）表达，研究方法页尽量配示意图。非统计配图默认由 `image-diagrams` 调用 imagegen 生成。
+**设计基调（两类通用）**：主色中大深绿 `#014924`（章节号 / 标题竖条 / 表头）；强调用克制的红 `#C00000`，全篇仅 1-2 处关键结论，不滥用；每页优先用图（机制图 / 流程图 / 技术路线图）表达，研究方法页尽量配示意图。非统计视觉默认由 `research-visuals` 按 PPT 载体建立视觉简报并调用 imagegen 生成。
 
 ## 工作流（复制即用）
 
@@ -109,8 +109,8 @@ sysu_save(ppt, "输出.pptx", genre = "meeting")  # 组会：强制禁目录/章
 
 ## 配图（imagegen 优先）
 
-- **流程图、结构图、技术路线、包含关系图、概念框架、机制示意和研究场景配图默认调用 `image-diagrams`**。Codex 有工具时直接使用内置 imagegen/image_gen；以高质量 PNG 嵌入 `sysu_add_image*`。用户明确要求矢量、工具不可用，或成图经修正仍不能保证文字与关系准确时才调用 `svg-diagrams`。不得再用 ggplot/ggflowchart/R 包默认矩形绘制这类图。统计图仍走 `publication-figures`，数据散点/曲线配方可参考 `references/figure_snippets.R`。
-- imagegen 图先按 `image-diagrams` 逐字核验标签、数字、节点和箭头。文字或数字有误时继续用 imagegen 定向编辑完整成图或整图重生成，不得用 Python、PPT 文本框或 SVG 覆盖层补字；多轮后仍不准确才整图回退 SVG。走 SVG 时再遵循 `svg-diagrams/references/design-system.md` 的对齐规则。
+- **封面主视觉、研究背景、流程图、结构图、技术路线、包含关系、概念框架、机制示意和研究场景配图默认调用 `research-visuals`**。生成前读取实际模板、图片区、标题位置和配色，按 `research-visuals/references/carrier-specs.md` 的 PPT 规则确定负空间、焦点和比例。Codex 有工具时直接使用内置 imagegen/image_gen，以高质量 PNG 嵌入 `sysu_add_image*`。用户明确要求矢量、工具不可用，或成图经修正仍不能保证文字与关系准确时才调用 `svg-diagrams`。统计图仍走 `publication-figures`。
+- imagegen 图先按 `research-visuals` 在原始分辨率与实际幻灯片中双重核验。流程、框架和路线图逐字检查标签、数字、节点和箭头；有误时继续用 imagegen 定向编辑完整成图或整图重生成，不得用 Python、PPT 文本框或 SVG 覆盖层补字。PPT 主视觉和章节配图默认不烧录标题或正文，由幻灯片原生文本承担。
 - **图内不写标题、不写解释性句子**（最常被打回）：删掉 `labs(title=...)`、删掉像"偏离对角线 = 概率不准""模型净获益最高的阈值区间"这类**讲道理的 `annotate("text")`**。图里只保留坐标轴、图例、必要的**数据标签**（如曲线旁的"病例/非病例"、参考线旁的阈值数值）。解释一律写到 PPT 正文或题注。
 - **每张图必须配"图N ……"题注**：黑色、小字号(13pt)、居中、置于图**下方**。用各 `sysu_add_image*` 的 `caption=` 参数（`sysu_add_text_image`/`sysu_add_image_caption`/`sysu_add_image` 都支持；toolkit 已把题注色设为近黑 `SYSU$col$text`）。图号 `图1/图2…`**按出现顺序连续**。
 - **图例要短**：不要把整句解释当图例标签（如"过度极端 slope<1（概率太极端）"）；缩成"slope<1 概率太极端"这类短词，解释移正文。图例条目过长 + `coord_equal` 常导致图例与面板间出现大块空白——用 `coord_cartesian(expand=FALSE)` + 短标签修复。
@@ -148,5 +148,5 @@ $pres.Close(); try { $pp.Quit() } catch {}
 - `scripts/example_ppt.R` — 覆盖全部版式的可运行演示。
 - `references/deck_skeleton.R` — 组会汇报骨架模板（13-15 页，无章节页）。
 - `references/defense_blueprint.R` — 开题/答辩/正式研究汇报骨架（20-40 页，含章节页、目录、技术路线、进度表、致谢页 + 顶部规范用词库与设计基调）。
-- `references/figure_snippets.R` — 数据散点/谱系等统计型配图示例；非统计流程、结构与场景配图改用 `image-diagrams`，按需回退 `svg-diagrams`。
+- `references/figure_snippets.R` — 数据散点/谱系等统计型配图示例；非统计流程、结构与场景配图改用 `research-visuals`，按需回退 `svg-diagrams`。
 - `assets/template.pptx`（默认中大医学）、`assets/template-公卫学院.pptx`（模板2）— 两套模板。

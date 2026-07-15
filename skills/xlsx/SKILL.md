@@ -11,6 +11,12 @@ license: Proprietary. LICENSE.txt has complete terms
 ### Professional Font
 - Use a consistent, professional font (e.g., Arial, Times New Roman) for all deliverables unless otherwise instructed by the user
 
+### Neutral Default Formatting
+- Unless the user or an existing template explicitly requests a visual theme, keep worksheets in the application's default neutral style: white background, black text, regular font sizes, and no decorative fills.
+- Keep titles and headers bold on white. Use alignment, spacing, freeze panes, column widths, and thin black or light-gray borders for structure.
+- Do not automatically add dark header bands, reversed white-on-dark text, colored first columns, shaded total rows, zebra striping, gradients, dashboard-style blocks, or background images.
+- Apply cell fills only when the user explicitly requests them or an existing template already uses them. A light highlight for a specific exception is not permission to color the whole table.
+
 ### Zero Formula Errors
 - Every Excel model MUST be delivered with ZERO formula errors (#REF!, #DIV/0!, #VALUE!, #N/A, #NAME?)
 
@@ -22,7 +28,7 @@ license: Proprietary. LICENSE.txt has complete terms
 ## Financial models
 
 ### Color Coding Standards
-Unless otherwise stated by the user or existing template
+Apply these conventions only when the user explicitly requests a financial-model color convention or the existing workbook already follows it. Otherwise use the neutral white-background default above.
 
 #### Industry-Standard Color Conventions
 - **Blue text (RGB: 0,0,255)**: Hardcoded inputs, and numbers users will change for scenarios
@@ -153,7 +159,7 @@ This applies to ALL calculations - totals, percentages, ratios, differences, etc
 ```python
 # Using openpyxl for formulas and formatting
 from openpyxl import Workbook
-from openpyxl.styles import Font, PatternFill, Alignment
+from openpyxl.styles import Alignment, Border, Font, Side
 
 wb = Workbook()
 sheet = wb.active
@@ -166,10 +172,11 @@ sheet.append(['Row', 'of', 'data'])
 # Add formula
 sheet['B2'] = '=SUM(A1:A10)'
 
-# Formatting
-sheet['A1'].font = Font(bold=True, color='FF0000')
-sheet['A1'].fill = PatternFill('solid', start_color='FFFF00')
+# Neutral formatting: bold black header on white with a thin bottom border
+thin = Side(style='thin', color='B7B7B7')
+sheet['A1'].font = Font(bold=True, color='000000')
 sheet['A1'].alignment = Alignment(horizontal='center')
+sheet['A1'].border = Border(bottom=thin)
 
 # Column width
 sheet.column_dimensions['A'].width = 20
@@ -290,3 +297,4 @@ The script returns JSON with error details:
 - Add comments to cells with complex formulas or important assumptions
 - Document data sources for hardcoded values
 - Include notes for key calculations and model sections
+- Default to white cells with black text and light borders; do not introduce dark or colored fills unless the user or existing template explicitly requires them

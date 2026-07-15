@@ -2,7 +2,7 @@
 
 定位：把已写好的报告内容渲染成符合 skill §四 规范的 docx——
 中文宋体 / 英文 Times New Roman、三线表、表上图下题注、纯黑、统计符号斜体、
-干净的居中加粗标题页（无灰色说明小字）。
+干净的居中加粗标题页（白底黑字，无深色标题条或灰色说明小字）。
 
 用法（在生成脚本里 import）：
     from build_report import Report
@@ -104,7 +104,7 @@ class Report:
 
     # ---- 标题页 ----
     def title_lines(self, lines, size=16):
-        """多行居中加粗标题；不加任何灰色说明小字。"""
+        """多行居中加粗标题；保持白底，不加色块或灰色说明小字。"""
         for ln in lines:
             p = self.doc.add_paragraph()
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -180,7 +180,7 @@ class Report:
         self._md.append(f"*{text}*\n")
 
     def three_line_table(self, header, rows, num_cols_right=None):
-        """三线表：顶线/表头下线/底线，无竖线无内部横线。
+        """白底黑字三线表：顶线/表头下线/底线，无填充、竖线或内部横线。
         num_cols_right: 右对齐的列索引集合（数字列）；默认除第 1 列外全右对齐。
         """
         ncol = len(header)
@@ -239,7 +239,7 @@ class Report:
             embed = source.with_suffix(".png")
             if not embed.is_file():
                 raise FileNotFoundError(
-                    f"SVG 图解缺少同名 PNG 回退：{embed}。先按 image-diagrams/svg-diagrams 生成可嵌入预览。"
+                    f"SVG 图解缺少同名 PNG 回退：{embed}。先按 research-visuals/svg-diagrams 生成可嵌入预览。"
                 )
         p = self.doc.add_paragraph()
         p.alignment = WD_ALIGN_PARAGRAPH.CENTER

@@ -217,8 +217,10 @@ def main() -> int:
             "主流程 skill",
             "只负责实际文件操作，不取代内容主流程",
             "evidence-research",
-            "必须先触发 `image-diagrams` → `imagegen`",
-            "由 AI 直接生成包含完整文字、数字和箭头的整张图",
+            "必须先触发 `research-visuals` → `imagegen`",
+            "PPT、论文、标书、报告和网页",
+            "由 AI 直接生成包含完整文字、数字和箭头的整图",
+            "不得自动给标题、表头、首列、汇总行或普通单元格添加深色",
             "只有用户当轮明确要求 push 时才推送",
             "唯一优先级",
             "凭证的完整内容",
@@ -319,6 +321,8 @@ def main() -> int:
             "def update_install_manifest(",
             "scan_skill_conflicts(",
             "remove_skill_conflicts(",
+            "remove_tree(resolved)",
+            'LEGACY_SKILL_ALIASES = {"image-diagrams": "research-visuals"}',
         ),
         "scripts/skill_conflicts.py": (
             "CONFLICT_DOMAINS",
@@ -326,6 +330,8 @@ def main() -> int:
             '"skill-conflict-reports"',
             "shutil.rmtree",
             "matched_terms",
+            "def remove_tree(",
+            "deferred_empty_directory",
         ),
         "scripts/config_core.py": (
             'PROJECT_NAME = "EpiAgentKit"',
@@ -334,7 +340,7 @@ def main() -> int:
             'layout == "both"',
             "Installation-time bundle closure only",
             '"evidence-research"',
-            '"image-diagrams"',
+            '"research-visuals"',
             '"project-init": {"biostat-principles", "epi-project-audit"}',
         ),
         "skills/project-init/SKILL.md": (
@@ -356,6 +362,9 @@ def main() -> int:
         "skills/report-writing/SKILL.md": (
             "无论只要正文还是文件",
             "只要正文时不调用 docx",
+            "默认中性排版",
+            "无填充、白底黑字",
+            "深色标题条、深色表头和莫名其妙的单元格底色",
         ),
         "skills/python-ecg-analysis/SKILL.md": (
             "只有确认 `--help` 会在业务逻辑前退出且不会写文件时",
@@ -442,20 +451,63 @@ def main() -> int:
         ),
         "skills/svg-diagrams/SKILL.md": (
             "回退凭证",
-            "当前可见 skills 清单没有 `image-diagrams`",
+            "当前可见 skills 清单没有 `research-visuals`",
             "序号与标题第一行垂直居中对齐",
             "包含关系图",
             "SVG XML 有效",
         ),
-        "skills/image-diagrams/SKILL.md": (
+        "skills/research-visuals/SKILL.md": (
             "Codex 使用内置 `imagegen` 技能及其 `image_gen` 工具",
-            "不因流程图或框架图看似可用简单形状表达就跳过 imagegen",
-            "Imagegen 整图修正",
-            "SVG 整图回退",
-            "逐字比对标签、数字和缩写",
-            "不得停在方案、提示词",
-            "生成初稿 → 查看原图",
+            "PPT 封面、主视觉、章节配图",
+            "论文或报告的概念插图",
+            "基金标书的立项依据",
+            "网页 hero、登录页侧栏",
+            "证据型原始图像",
+            "形成视觉简报",
+            "双尺度检查",
+            "最多连续两次定向修正",
+            "科研感必须来自真实主题和关系",
+            "网页图已检查响应式裁切",
             "不得用 Python、PPT 文本框、Word 文本框或 SVG 覆盖层",
+        ),
+        "skills/research-visuals/references/visual-strategy.md": (
+            "从信息功能出发",
+            "系列一致性",
+            "生成式痕迹审查",
+            "https://platform.openai.com/docs/guides/image-generation",
+            "https://www.w3.org/WAI/tutorials/images/",
+        ),
+        "skills/research-visuals/references/carrier-specs.md": (
+            "PPT",
+            "论文与图形摘要",
+            "基金标书",
+            "网页",
+            "响应式图片资源",
+        ),
+        "skills/research-visuals/references/prompt-recipes.md": (
+            "通用视觉简报",
+            "PPT 主视觉或章节配图",
+            "标书立项、创新或影响配图",
+            "网页 hero 或登录侧栏",
+            "最多连续两次定向修正",
+        ),
+        "skills/academic-publishing/references/submission-materials.md": (
+            "built via `research-visuals`",
+            "target-journal dimensions",
+        ),
+        "skills/report-writing/references/build_report.py": (
+            "白底黑字三线表",
+            "保持白底，不加色块",
+        ),
+        "skills/xlsx/SKILL.md": (
+            "Neutral Default Formatting",
+            "Do not automatically add dark header bands",
+            "Default to white cells with black text and light borders",
+        ),
+        "README.md": (
+            "`research-visuals`",
+            "PPT、论文、标书、报告和网页",
+            "PPT + imagegen 科研视觉技能包",
         ),
         "skills/git-commit-helper/SKILL.md": (
             "create the commit automatically",
@@ -490,7 +542,7 @@ def main() -> int:
         "skills/project-init/references/project-hygiene.md": (
             "<EpiAgentKit仓库>/scripts/epiagentkit.py check-project",
         ),
-        "skills/image-diagrams/SKILL.md": (
+        "skills/research-visuals/SKILL.md": (
             "优先生成无文字视觉层",
             "加确定性文字覆盖",
         ),

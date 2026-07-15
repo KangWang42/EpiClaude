@@ -23,7 +23,7 @@ if (!length(SKILL) || is.na(SKILL)) stop("找不到 sysu-ppt；请设置 EPIAGEN
 source(file.path(SKILL, "scripts", "sysu_toolkit.R"))
 
 TPL <- "default"        # 默认中大医学；用户要原公卫模板时改 "模板2"
-FIG <- "figures"        # 非统计图解按 image-diagrams 优先生成 PNG；统计图走 publication-figures
+FIG <- "figures"        # 非统计视觉按 research-visuals 优先生成 PNG；统计图走 publication-figures
 f <- function(x) file.path(FIG, x)
 
 ppt <- sysu_init(TPL)

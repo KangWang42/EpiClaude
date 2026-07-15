@@ -306,6 +306,18 @@ def remove_readonly(func, path: str, _exc_info) -> None:
     func(path)
 
 
+def remove_tree(path: Path) -> bool:
+    """Remove a tree, tolerating an empty Windows directory held by a client."""
+    try:
+        shutil.rmtree(path, onerror=remove_readonly)
+    except PermissionError:
+        if os.name == "nt" and path.is_dir() and not any(path.iterdir()):
+            print(f"DEFER  {path} (empty directory is locked; remove after client restart)")
+            return False
+        raise
+    return True
+
+
 def remove_skill_conflicts(
     conflicts: list[SkillConflict],
     *,
@@ -369,8 +381,8 @@ def remove_skill_conflicts(
         )
         original = Path(record["local_path"])
         print(f"REMOVE {original}")
-        shutil.rmtree(original, onerror=remove_readonly)
-        record["action"] = "deleted"
+        removed = remove_tree(original)
+        record["action"] = "deleted" if removed else "deferred_empty_directory"
     manifest.write_text(
         json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )

@@ -5,6 +5,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 
 SCRIPTS = Path(__file__).resolve().parents[1]
@@ -130,6 +131,46 @@ class SkillConflictTests(unittest.TestCase):
             payload = json.loads(manifest.read_text(encoding="utf-8"))
             self.assertNotIn("backup_path", payload["conflicts"][0])
             self.assertEqual(payload["conflicts"][0]["action"], "deleted")
+
+    def test_removal_defers_empty_windows_directory_locked_by_client(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            repo = root / "repo"
+            home = root / "home"
+            local = home / ".agents/skills"
+            write_skill(repo / "skills", "publication-figures", "authoritative figures")
+            old = write_skill(local, "legacy-plotter", "处理任意科研出图")
+            conflicts = scan_skill_conflicts(
+                platform="codex",
+                source_root=repo,
+                incoming={"publication-figures"},
+                discovery_roots=[local],
+                target_roots=[local],
+            )
+
+            def locked_empty_tree(path: Path, onerror=None) -> None:
+                for child in path.iterdir():
+                    child.unlink()
+                raise PermissionError("directory held by client")
+
+            with (
+                patch("skill_conflicts.os.name", "nt"),
+                patch("skill_conflicts.shutil.rmtree", side_effect=locked_empty_tree),
+            ):
+                manifest = remove_skill_conflicts(
+                    conflicts,
+                    home=home,
+                    source_root=repo,
+                    dry_run=False,
+                    run_id="locked-run",
+                )
+
+            self.assertTrue(old.is_dir())
+            self.assertEqual(list(old.iterdir()), [])
+            payload = json.loads(manifest.read_text(encoding="utf-8"))
+            self.assertEqual(
+                payload["conflicts"][0]["action"], "deferred_empty_directory"
+            )
 
     def test_dry_run_changes_nothing(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

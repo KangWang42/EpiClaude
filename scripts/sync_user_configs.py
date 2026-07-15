@@ -29,9 +29,10 @@ from config_core import (
     resolve_codex_skill_dirs,
 )
 from hook_conflicts import reconcile_hook_conflicts
-from skill_conflicts import remove_skill_conflicts, scan_skill_conflicts
+from skill_conflicts import remove_skill_conflicts, remove_tree, scan_skill_conflicts
 
 CODEX_EXCLUDES = {"skill-creator"}
+LEGACY_SKILL_ALIASES = {"image-diagrams": "research-visuals"}
 COPY_IGNORES = {"__pycache__", ".DS_Store"}
 VALID_COMPONENTS = {"rules", "skills", "hooks"}
 MANAGED_HOOK_SCRIPTS = {
@@ -94,7 +95,7 @@ def safe_remove(path: Path, parent: Path, dry_run: bool) -> None:
         raise RuntimeError(f"Refusing to remove path outside target root: {resolved}")
     print(f"REMOVE {resolved}")
     if not dry_run:
-        shutil.rmtree(resolved, onerror=remove_readonly)
+        remove_tree(resolved)
 
 
 def read_manifest(path: Path, legacy: Path | None = None) -> set[str]:
@@ -310,9 +311,14 @@ def sync_skills(
     legacy_manifest = target / LEGACY_SKILL_MANIFEST
     previous = read_manifest(manifest, legacy_manifest)
     if prune_stale:
+        for legacy, replacement in LEGACY_SKILL_ALIASES.items():
+            legacy_path = target / legacy
+            if replacement in skills and legacy_path.is_dir():
+                safe_remove(legacy_path, target, dry_run)
+    if prune_stale:
         for stale in sorted(previous - set(skills)):
             stale_path = target / stale
-            if stale_path.is_dir():
+            if stale_path.is_dir() and stale_path.name not in LEGACY_SKILL_ALIASES:
                 safe_remove(stale_path, target, dry_run)
 
     for name, skill in skills.items():
