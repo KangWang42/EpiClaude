@@ -45,6 +45,29 @@ class SkillConflictTests(unittest.TestCase):
             self.assertEqual(len(conflicts), 1)
             self.assertEqual(conflicts[0].authority, "research-visuals")
 
+    def test_academic_figure_prompt_overlap_is_detected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            repo = root / "repo"
+            local = root / "home/.agents/skills"
+            write_skill(repo / "skills", "research-visuals", "authoritative visuals")
+            write_skill(
+                local,
+                "academic-figure-prompt",
+                "Generate a detailed academic diagram prompt for paper figures",
+            )
+
+            conflicts = scan_skill_conflicts(
+                platform="codex",
+                source_root=repo,
+                incoming={"research-visuals"},
+                discovery_roots=[local],
+                target_roots=[local],
+            )
+
+            self.assertEqual(len(conflicts), 1)
+            self.assertEqual(conflicts[0].authority, "research-visuals")
+
     def test_semantic_overlap_is_detected_and_delegated_skill_is_ignored(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

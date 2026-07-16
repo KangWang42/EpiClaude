@@ -40,6 +40,9 @@ class WorkflowRoutingTests(unittest.TestCase):
         )
         self.assertIn("发表级统计图、数据图", body)
         self.assertIn("非统计视觉不触发本技能", body)
+        self.assertIn("先锁定图前合同", body)
+        self.assertIn("多面板已完成两两去冗余", body)
+        self.assertIn("07_paper/results.yaml", body)
         self.assertNotIn("用户要求出图、画图、做图、生成 Fig", body)
 
     def test_results_machine_source_is_not_the_derived_markdown(self) -> None:

@@ -39,6 +39,17 @@ scripts/           双平台安装、同步与验收工具
 
 组合路由遵循“内容主流程 → 视觉或文件操作 → 终审”：论文从零生成用 `academic-publishing → academic-humanizer`，需要 Word 时再加 `docx`；已有学术文本编辑以 `academic-humanizer` 为主；报告用 `report-writing → docx`；中大学术汇报用 `sysu-ppt → pptx`；R 统计分析用 `biostat-principles → r-biostats`，Python ECG 分析用 `biostat-principles` → `python-ecg-analysis`，仅实际出数据图时加 `publication-figures`。PPT、论文、标书、报告和网页的非统计视觉统一走 `research-visuals → imagegen`，只有矢量或精度回退时使用 `svg-diagrams`。`consulting-delivery` 仅用于分析完成后的最终外发打包。
 
+## 科研图外部参考与吸收范围
+
+科研视觉工作流完整审阅了以下开源项目的 README、技能正文、引用、脚本、样例和许可证。EpiAgentKit 按流行病学、医学和公共卫生的证据边界重新实现主流程，同时把选定的开源参考文档和提示词按固定 commit、许可证与 SHA-256 归档为只读素材库；未引入其生产脚本、示例图片或第三方 API 配置。详细执行规范见 [`figure-planning.md`](skills/research-visuals/references/figure-planning.md)，上游文件清单见 [`external/SOURCE.md`](skills/research-visuals/references/external/SOURCE.md)。
+
+| 参考项目与审阅快照 | 吸收的做法 | 明确不采用 |
+| --- | --- | --- |
+| [TingxiYu/academic-figure-skill](https://github.com/TingxiYu/academic-figure-skill) `1df9940`，Apache-2.0 | 问题驱动的图前合同、面板独立贡献、参考图原图检查、多面板去冗余、多轮 QA、统计与来源说明；已归档图前合同与多面板参考原文 | 固定期刊配色、任意数据有效性阈值、生产脚本机械移植、每次固定等待确认、未核验的“代表性论文”来源；该快照存在语法未通过的评估脚本，不导入其实现 |
+| [LigphiDonk/academic-figure-generator](https://github.com/LigphiDonk/academic-figure-generator) `0a2bec6`，MIT | 论文分节、来源章节映射、图类/比例/理由结构化保存、总览加局部、模块内语义图元；已归档通用学术架构图提示词原文 | 每个章节自动配图、固定 500 至 1200 词提示词、强制配色确认、参考图条件生成、未核验第三方图片 API、无文字模板后叠字、生成式解剖或似真数据图 |
+
+整合后的最短链路为：`来源到图件矩阵 → 图前合同 → 证据路由 → 结构化提示词 → imagegen 纯文本整图 → 四轮 QA → 最终载体`。统计数据图仍走 `publication-figures`，科研原始证据仍保持原图；外部参考图只用于生成前解构，不随新图或重生成调用上传，也不替代来源身份核验。
+
 ## 双平台兼容
 
 技能主体遵循 Agent Skills 目录结构：每个 skill 必有 `SKILL.md`（`name` + `description`），可带 `scripts/`、`references/`、`assets/` 与 Codex 可选的 `agents/openai.yaml`。Claude Code 与 Codex 读取同一份技能内容，不维护两套正文。

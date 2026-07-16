@@ -213,6 +213,10 @@ def main() -> int:
         problems.append(f"routing cases could not be validated: {error}")
 
     required = {
+        ".gitattributes": (
+            "academic-figure-skill/** binary",
+            "academic-figure-generator/** binary",
+        ),
         "CLAUDE.md": (
             "主流程 skill",
             "只负责实际文件操作，不取代内容主流程",
@@ -220,6 +224,7 @@ def main() -> int:
             "必须先触发 `research-visuals` → `imagegen`",
             "PPT、论文、标书、报告和网页",
             "由 AI 直接生成包含完整文字、数字和箭头的整图",
+            "全新生成和重生成不得携带参考图",
             "不得自动给标题、表头、首列、汇总行或普通单元格添加深色",
             "只有用户当轮明确要求 push 时才推送",
             "唯一优先级",
@@ -336,6 +341,7 @@ def main() -> int:
             "def remove_tree(",
             "deferred_empty_directory",
             '"research-visuals"',
+            '"academic diagram prompt"',
         ),
         "scripts/config_core.py": (
             'PROJECT_NAME = "EpiAgentKit"',
@@ -384,6 +390,8 @@ def main() -> int:
         "skills/publication-figures/SKILL.md": (
             "发表级统计图、数据图和含坐标或尺度映射的结果图",
             "非统计视觉不触发本技能",
+            "先锁定图前合同",
+            "多面板已完成两两去冗余",
         ),
         "scripts/configure_user.py": (
             "CODEX_COMPATIBILITY_WARNING,",
@@ -487,12 +495,56 @@ def main() -> int:
             "证据型原始图像",
             "形成视觉简报",
             "双尺度检查",
-            "最多连续两次定向修正",
+            "最多连续两次纯文本重生成",
             "科研感必须来自真实主题和关系",
             "网页图已检查响应式裁切",
             "不得用 Python、PPT 文本框、Word 文本框或 SVG 覆盖层",
             "触发本技能不等于每页都要生成图片",
             "research-figure-patterns.md",
+            "figure-planning.md",
+            "references/external/SOURCE.md",
+            "来源到图件矩阵",
+            "必要性与证据、内容与拓扑、视觉与可读性、最终载体",
+            "不得设置 `referenced_image_paths` 或 `num_last_images_to_include`",
+            "参考图条件生成超时不能据此判定 imagegen 不可用",
+        ),
+        "skills/research-visuals/references/figure-planning.md": (
+            "来源到图件矩阵",
+            "图前合同",
+            "参考图解构",
+            "四轮签发",
+            "TingxiYu/academic-figure-skill",
+            "LigphiDonk/academic-figure-generator",
+            "不按章节机械配图",
+            "不强制设置“英雄面板”",
+            "external/SOURCE.md",
+            "未引入上游生产脚本、示例图片或第三方 API 配置",
+            "不随新图或重生成的 imagegen 调用上传",
+        ),
+        "skills/research-visuals/references/external/SOURCE.md": (
+            "只读上游快照",
+            "主 `SKILL.md` 始终优先",
+            "1df9940dd01ac939f072b12fe28d6353b79b90f9",
+            "0a2bec6bb56d6b47143a81909f8d818716bdcbab",
+            "f67fab86c84069368988cf49b699b901758bc04dbc98a69d22fd62ee3e3692c6",
+            "6d84103d20c43dbf46c97f0aea99867bd7675599885901390860da35a9033e47",
+            "不执行固定配色确认",
+            "新图和重生成不上传参考图",
+        ),
+        "skills/research-visuals/references/external/academic-figure-skill/figure-contract.md": (
+            "The Five-Point Contract",
+        ),
+        "skills/research-visuals/references/external/academic-figure-skill/multipanel-layout.md": (
+            "Anti-Redundancy",
+        ),
+        "skills/research-visuals/references/external/academic-figure-skill/LICENSE": (
+            "Apache License",
+        ),
+        "skills/research-visuals/references/external/academic-figure-generator/academic-figure-prompt-upstream.md": (
+            "Academic Figure Prompt",
+        ),
+        "skills/research-visuals/references/external/academic-figure-generator/LICENSE": (
+            "MIT License",
         ),
         "skills/research-visuals/references/visual-strategy.md": (
             "从信息功能出发",
@@ -514,8 +566,13 @@ def main() -> int:
             "PPT 主视觉或章节配图",
             "标书立项、创新或影响配图",
             "网页 hero 或登录侧栏",
-            "最多连续两次定向修正",
+            "最多连续两次纯文本整图重生成",
             "Question-method pairs",
+            "Source anchors",
+            "Must not infer",
+            "不设固定字数",
+            "external/SOURCE.md",
+            "Do not use or condition on any reference image",
         ),
         "skills/research-visuals/references/research-figure-patterns.md": (
             "好的科研图回答一个问题",
@@ -527,6 +584,8 @@ def main() -> int:
             "研究问题与对应方法",
             "连续讲解复杂方法时复用同一母图",
             "禁止图库水印、低清截图、缺图占位符",
+            "多面板已完成两两去冗余",
+            "与真实输入、变换或输出对应",
         ),
         "skills/sysu-ppt/SKILL.md": (
             "不要把“每页有图”当目标",
@@ -556,6 +615,12 @@ def main() -> int:
             "逐部件内部闭环写作",
             "`biostat-principles` → `python-ecg-analysis`",
             "审查（六层）在发现失败后继续收集全部证据",
+            "TingxiYu/academic-figure-skill",
+            "LigphiDonk/academic-figure-generator",
+            "来源到图件矩阵 → 图前合同 → 证据路由",
+            "选定的开源参考文档和提示词",
+            "external/SOURCE.md",
+            "未引入其生产脚本、示例图片或第三方 API 配置",
         ),
         "skills/git-commit-helper/SKILL.md": (
             "create the commit automatically",
@@ -593,6 +658,13 @@ def main() -> int:
         "skills/research-visuals/SKILL.md": (
             "优先生成无文字视觉层",
             "加确定性文字覆盖",
+            "minimum 500 words",
+            "User Confirms",
+            "Copy the ENTIRE script",
+        ),
+        "skills/research-visuals/references/prompt-recipes.md": (
+            "minimum 500 words",
+            "等待用户选择后",
         ),
         "skills/sysu-ppt/SKILL.md": (
             "优先生成无文字视觉层",

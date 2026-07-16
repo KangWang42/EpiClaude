@@ -97,6 +97,9 @@ CONFLICT_DOMAINS = {
         "科研视觉资产",
         "imagegen 科研视觉",
         "流程图、技术路线、结构图、概念框架",
+        "学术论文配图提示词",
+        "academic diagram prompt",
+        "paper figure prompt",
         "scientific research visuals",
     ),
     "report-writing": (

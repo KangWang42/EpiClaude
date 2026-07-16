@@ -7,5 +7,9 @@
 *.py text eol=lf
 *.R text eol=lf
 
+# Vendored upstream snapshots retain source bytes so recorded SHA-256 values stay portable.
+skills/research-visuals/references/external/academic-figure-skill/** binary
+skills/research-visuals/references/external/academic-figure-generator/** binary
+
 # Windows hook 启动器固定 CRLF，避免不同 autocrlf 设置反复提示或改写。
 *.cmd text eol=crlf
