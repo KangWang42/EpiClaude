@@ -528,7 +528,7 @@ sysu_flextable <- function(df, widths = NULL, fsize = 14, align = "left") {
 }
 
 # ============================================================================
-# 6. 保存（体裁门禁 + 强制文本框顶端对齐）
+# 6. 保存（体裁检查 + 强制文本框顶端对齐）
 # ============================================================================
 #' 组会体裁检查：禁止目录页与 sysu_add_section() 生成的章节分隔页。
 .validate_meeting_deck <- function(ppt) {
@@ -552,7 +552,7 @@ sysu_flextable <- function(df, widths = NULL, fsize = 14, align = "left") {
 }
 
 #' 保存 PPT。genre 默认 meeting；正式开题/答辩须显式传 formal。
-#' 等价于 print(ppt, path)，但保存前执行体裁门禁，并把所有"空 bodyPr"文本框设为顶端对齐。
+#' 等价于 print(ppt, path)，但保存前执行体裁检查，并把所有"空 bodyPr"文本框设为顶端对齐。
 #' 仅按字节替换 ASCII 串 <a:bodyPr/>，不触碰中文(UTF-8)与已显式设置对齐的表格单元。
 sysu_save <- function(ppt, path, genre = c("meeting", "formal")) {
   genre <- match.arg(genre)

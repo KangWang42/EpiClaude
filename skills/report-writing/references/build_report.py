@@ -16,7 +16,7 @@
     rep.figure(figure_paths["trajectory"], caption="图1 各组体重变化轨迹")  # 路径由 registry/export map 提供
     rep.save("报告.docx", also_md=True)                 # 默认同时落 .md；当前版稳定命名
 
-正文内容必须由调用方按 skill 铁律手写（数据有源、完整段落、零编造），
+正文内容必须由调用方按 skill 强制要求写入（数据有源、完整段落、零编造），
 本模块只负责"排版正确"，不负责"内容生成"。
 """
 from pathlib import Path

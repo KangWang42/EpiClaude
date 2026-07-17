@@ -4,7 +4,7 @@
 hook_dir=$(cd "$(dirname "$0")" && pwd)
 payload=$(cat)
 if ! protected=$(printf '%s' "$payload" | python "$hook_dir/_path_guard.py"); then
-  printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"原始数据路径门禁解析失败。请先修复 hook 或 .epiagentkit-raw-roots，再执行文件修改。"}}\n'
+  printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"原始数据路径保护规则解析失败。请先修复 hook 或 .epiagentkit-raw-roots，再执行文件修改。"}}\n'
   exit 0
 fi
 if [ -n "$protected" ]; then

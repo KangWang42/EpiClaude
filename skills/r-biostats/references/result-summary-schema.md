@@ -1,6 +1,6 @@
 # 结果单一真源 schema 与工作流（P0-A1 / C1）
 
-目录：1 为什么 · 2 results.yaml schema · 3 写入（add_result）· 4 渲染 md · 5 下游取数 val() · 6 双向一致性铁律 · 7 结论与解读（改数字≠改完）
+目录：1 为什么 · 2 results.yaml schema · 3 写入（add_result）· 4 渲染 md · 5 下游取数 val() · 6 双向一致性要求 · 7 结论与解读（改数字≠改完）
 
 ## 1 为什么
 
@@ -64,7 +64,7 @@ render_summary_md("07_paper/results.yaml", "07_paper/0_result_summaries.md")
 - R（出图 / sysu-ppt toolkit / 分析内联）：`val("07_paper/results.yaml", "S2_vs_S1_diff")` → `"−1.82 kg（95%CI：−3.29，−0.36），P = 0.015"`；`which="est_ci"/"p"/"est"/"ci"` 取分量。
 - Python（report-writing `build_report.py`）：`from build_report import val; val("07_paper/results.yaml", "S2_vs_S1_diff")`。
 
-## 6 双向一致性铁律
+## 6 双向一致性要求
 
 - 数字**只在 results.yaml（或其产出脚本的 add_result）改**；改完重跑 render_summary_md，下游重生成即同步。
 - **NEVER** 在论文 / 报告 / PPT 里直接敲数字或就地改数字。若发现下游数字与源不符，回到 results.yaml 改、再向所有下游传播——任何"只改一处"视为缺陷。
@@ -81,7 +81,7 @@ results.yaml 不只是数字——每条结果可带 `interp`（结论/效应解
   `interp_review: true`（待复核）并 `warning`。
 - `render_summary_md()` 在 md 顶部与该条解读旁打 `[解读待复核]`，把过时解读和新数字并列显示，使矛盾一眼可见。
 - 复核后调 `confirm_interp(path, key, interp="新的解读")` 写新解读并清除标记；总结论用 `set_conclusion(path, text)`。
-- `stale_interps(path)` 列出所有待复核键，可在交付前 gate（非空则不许定稿）。
+- `stale_interps(path)` 列出所有待复核键，可作为交付前检查（非空则不许定稿）。
 
 写解读的话术规范（沿用 academic-publishing / chinese-style-audit / academic-humanizer）：客观、有依据、不夸大；
 无依据的"最佳/证明"不写，数字、统计方向和证据位置保持锁定。

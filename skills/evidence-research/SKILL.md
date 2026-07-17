@@ -65,7 +65,7 @@ Formal 模式按 [references/evidence-matrix.md](references/evidence-matrix.md) 
 
 来源不一致时比较人群、定义、测量、模型、时间窗和偏倚，不按篇数投票。
 
-## 5. 跨领域可迁移性门禁
+## 5. 跨领域可迁移性评估
 
 逐项判断：
 

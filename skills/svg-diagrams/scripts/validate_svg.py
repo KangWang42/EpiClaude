@@ -11,41 +11,63 @@ from collections import defaultdict
 from pathlib import Path
 
 
-PALETTE = {
-    "biology": {"fill": "#EAF2FB", "stroke": "#BBD6F0", "title": "#2E5C8A"},
-    "exposure": {"fill": "#FDF6E3", "stroke": "#F0DA9E", "title": "#9C7A1E"},
-    "covariate": {"fill": "#F2F2F2", "stroke": "#D0D0D0", "title": "#444444"},
-    "risk": {"fill": "#FBEAEA", "stroke": "#F0B8B8", "title": "#B0413E"},
-    "outcome": {"fill": "#E9F6F0", "stroke": "#B7E0CB", "title": "#2F7A52"},
-    "nonlinear": {"fill": "#FDF0E4", "stroke": "#F3C99A", "title": "#B8641A"},
+SEMANTIC_CATEGORIES = {
+    "biology",
+    "exposure",
+    "covariate",
+    "risk",
+    "outcome",
+    "nonlinear",
+}
+TONE_PALETTE = {
+    "primary": {
+        "fill": "#E7F1ED",
+        "stroke": {"#9FC7BB", "#3D7467"},
+        "title": "#28594F",
+    },
+    "secondary": {
+        "fill": "#F8F1E6",
+        "stroke": {"#D8B57A", "#B98543"},
+        "title": "#7A582E",
+    },
+    "critical": {
+        "fill": "#F7E8E6",
+        "stroke": {"#D9A29C", "#B45F55"},
+        "title": "#8F3F38",
+    },
+    "neutral": {
+        "fill": "#F5F5F3",
+        "stroke": {"#D2D4D0", "#A7AAA5"},
+        "title": "#333A37",
+    },
 }
 JOURNAL_FLOW = {
     "canvas": "#FFFFFF",
-    "main_fill": "#EAF2FB",
-    "main_stroke": "#2E5C8A",
-    "exclusion_fill": "#F2F2F2",
-    "exclusion_stroke": "#8A8A8A",
-    "text": "#444444",
-    "connector": "#909090",
+    "main_fill": "#E7F1ED",
+    "main_stroke": "#3D7467",
+    "exclusion_fill": "#F8F1E6",
+    "exclusion_stroke": "#B98543",
+    "critical_fill": "#F7E8E6",
+    "critical_stroke": "#B45F55",
+    "text": "#333A37",
+    "connector": "#737B77",
 }
-PAPER_EDITORIAL_COLORS = {
+NEUTRALS = {
     "#FFFFFF",
-    "#F2F2F2",
-    "#EAF2FB",
-    "#D0D0D0",
-    "#8A8A8A",
-    "#BBD6F0",
-    "#2E5C8A",
-    "#909090",
-    "#444444",
+    "#FDFDFB",
+    "#F5F5F3",
+    "#D2D4D0",
+    "#A7AAA5",
+    "#737B77",
+    "#68716D",
+    "#333A37",
 }
-PAPER_NODE_FILLS = {"#FFFFFF", "#F2F2F2", "#EAF2FB"}
-PAPER_NODE_STROKES = {"#D0D0D0", "#8A8A8A", "#BBD6F0", "#2E5C8A"}
-PAPER_TITLE_COLORS = {"#444444", "#2E5C8A"}
-NEUTRALS = {"#FFFFFF", "#FDFDFB", "#8A8A8A", "#909090", "#444444"}
-ALLOWED_COLORS = NEUTRALS | {
-    color for category in PALETTE.values() for color in category.values()
-}
+ALLOWED_COLORS = (
+    NEUTRALS
+    | {tone["fill"] for tone in TONE_PALETTE.values()}
+    | {tone["title"] for tone in TONE_PALETTE.values()}
+    | set().union(*(tone["stroke"] for tone in TONE_PALETTE.values()))
+)
 COLOR_RE = re.compile(r"#[0-9A-Fa-f]{3,8}\b")
 NUMBER_RE = re.compile(r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?")
 PATH_TOKEN_RE = re.compile(r"[A-Za-z]|[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?")
@@ -211,6 +233,7 @@ def validate_editorial(
 ) -> list[str]:
     problems: list[str] = []
     categories: set[str] = set()
+    tones: set[str] = set()
     layer_cards: dict[str, list[tuple[float, float, str]]] = defaultdict(list)
     node_titles: dict[str, float] = {}
     semantic_nodes = 0
@@ -221,6 +244,7 @@ def validate_editorial(
         name = local_name(element.tag)
         role = element.get("data-role")
         category = element.get("data-category")
+        tone = element.get("data-tone")
         label = element_label(element)
 
         if name in {"linearGradient", "radialGradient"} and not allow_gradient:
@@ -243,18 +267,20 @@ def validate_editorial(
                 normalized = match.upper()
                 if len(normalized) != 7 or normalized not in ALLOWED_COLORS:
                     problems.append(f"color outside editorial palette on {label}: {match}")
-                if purpose == "paper" and normalized not in PAPER_EDITORIAL_COLORS:
-                    problems.append(
-                        f"paper editorial allows only white/gray and one blue hue on {label}: {match}"
-                    )
             if re.search(r"\b(?:rgb|rgba|hsl|hsla)\s*\(", raw, re.I):
                 problems.append(f"non-hex color is not allowed on {label}: {raw}")
 
         if category:
-            if category not in PALETTE:
+            if category not in SEMANTIC_CATEGORIES:
                 problems.append(f"unknown data-category on {label}: {category}")
             else:
                 categories.add(category)
+
+        if tone:
+            if tone not in TONE_PALETTE:
+                problems.append(f"unknown data-tone on {label}: {tone}")
+            else:
+                tones.add(tone)
 
         if role == "canvas":
             canvases += 1
@@ -265,22 +291,19 @@ def validate_editorial(
 
         if role in {"card", "nested-layer"}:
             semantic_nodes += 1
-            if category not in PALETTE:
+            if category not in SEMANTIC_CATEGORIES:
                 problems.append(f"semantic node lacks valid data-category: {label}")
+                continue
+            if tone not in TONE_PALETTE:
+                problems.append(f"semantic node lacks valid data-tone: {label}")
                 continue
             actual_fill = color(prop(element, "fill"))
             actual_stroke = color(prop(element, "stroke"))
-            if purpose == "paper":
-                if actual_fill not in PAPER_NODE_FILLS:
-                    problems.append(f"paper node fill must be white, gray, or pale blue on {label}")
-                if actual_stroke not in PAPER_NODE_STROKES:
-                    problems.append(f"paper node stroke must be neutral or blue on {label}")
-            else:
-                expected = PALETTE[category]
-                if actual_fill != expected["fill"]:
-                    problems.append(f"category fill mismatch on {label}")
-                if actual_stroke != expected["stroke"]:
-                    problems.append(f"category stroke mismatch on {label}")
+            expected = TONE_PALETTE[tone]
+            if actual_fill != expected["fill"]:
+                problems.append(f"tone fill mismatch on {label}")
+            if actual_stroke not in expected["stroke"]:
+                problems.append(f"tone stroke mismatch on {label}")
             stroke_width = number(prop(element, "stroke-width"))
             if stroke_width is None or not 0.8 <= stroke_width <= 1.5:
                 problems.append(f"card border must be 0.8 to 1.5 px on {label}")
@@ -299,13 +322,13 @@ def validate_editorial(
                     layer_cards[layer].append((width, height, label))
 
         if role == "node-title":
-            if category not in PALETTE:
+            if category not in SEMANTIC_CATEGORIES:
                 problems.append(f"node title lacks valid data-category: {label}")
+            elif tone not in TONE_PALETTE:
+                problems.append(f"node title lacks valid data-tone: {label}")
             else:
                 actual_title = color(prop(element, "fill"))
-                if purpose == "paper" and actual_title not in PAPER_TITLE_COLORS:
-                    problems.append(f"paper title must be neutral or blue on {label}")
-                elif purpose != "paper" and actual_title != PALETTE[category]["title"]:
+                if actual_title != TONE_PALETTE[tone]["title"]:
                     problems.append(f"title color mismatch on {label}")
             weight = number(prop(element, "font-weight"))
             if weight is None or not 550 <= weight <= 700:
@@ -320,8 +343,8 @@ def validate_editorial(
                 problems.append(f"node title is empty: {label}")
 
         if role == "node-subtitle":
-            if color(prop(element, "fill")) != "#8A8A8A":
-                problems.append(f"subtitle color must be #8A8A8A on {label}")
+            if color(prop(element, "fill")) != "#68716D":
+                problems.append(f"subtitle color must be #68716D on {label}")
             weight = number(prop(element, "font-weight"))
             if weight is not None and not 350 <= weight <= 450:
                 problems.append(f"subtitle weight must be regular on {label}")
@@ -340,8 +363,8 @@ def validate_editorial(
                 problems.append(f"text does not declare a sans-serif fallback: {label}")
 
         if role in {"connector", "axis", "axis-tick"}:
-            if color(prop(element, "stroke")) != "#909090":
-                problems.append(f"connector stroke must be #909090 on {label}")
+            if color(prop(element, "stroke")) != "#737B77":
+                problems.append(f"connector stroke must be #737B77 on {label}")
             stroke_width = number(prop(element, "stroke-width"))
             if stroke_width is None or not 1.5 <= stroke_width <= 2.0:
                 problems.append(f"connector width must be 1.5 to 2 px on {label}")
@@ -362,6 +385,11 @@ def validate_editorial(
     if max_categories is not None and len(categories) > max_categories:
         problems.append(
             f"semantic category count {len(categories)} exceeds maximum {max_categories}"
+        )
+    chromatic_tones = tones - {"neutral"}
+    if len(chromatic_tones) > 3:
+        problems.append(
+            f"chromatic tone count {len(chromatic_tones)} exceeds maximum 3"
         )
 
     for layer, cards in layer_cards.items():
@@ -392,6 +420,7 @@ def validate_journal_flow(
     for element in root.iter():
         name = local_name(element.tag)
         role = element.get("data-role")
+        tone = element.get("data-tone")
         label = element_label(element)
 
         if name in {"linearGradient", "radialGradient"}:
@@ -438,9 +467,18 @@ def validate_journal_flow(
                 problems.append(f"flow node border must be 1 to 1.5 px on {label}")
 
             if role == "flow-exclusion":
+                if tone not in {None, "secondary"}:
+                    problems.append(f"flow-exclusion must use data-tone='secondary': {label}")
                 expected_fill = JOURNAL_FLOW["exclusion_fill"]
                 expected_stroke = JOURNAL_FLOW["exclusion_stroke"]
+            elif role == "flow-terminal" and tone == "critical":
+                expected_fill = JOURNAL_FLOW["critical_fill"]
+                expected_stroke = JOURNAL_FLOW["critical_stroke"]
             else:
+                if tone not in {None, "primary"}:
+                    problems.append(
+                        f"{role} must use data-tone='primary' or a critical terminal: {label}"
+                    )
                 expected_fill = JOURNAL_FLOW["main_fill"]
                 expected_stroke = JOURNAL_FLOW["main_stroke"]
             if color(prop(element, "fill")) != expected_fill:
@@ -471,7 +509,7 @@ def validate_journal_flow(
 
         if role == "connector":
             if color(prop(element, "stroke")) != JOURNAL_FLOW["connector"]:
-                problems.append(f"connector stroke must be #909090 on {label}")
+                problems.append(f"connector stroke must be #737B77 on {label}")
             stroke_width = number(prop(element, "stroke-width"))
             if stroke_width is None or not 1.5 <= stroke_width <= 2.0:
                 problems.append(f"connector width must be 1.5 to 2 px on {label}")

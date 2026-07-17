@@ -2,7 +2,7 @@
 
 > SKILL.md §二 的英文执行细节。各部件框架 + 写作流程 + 自检清单。句式从 `english-phrasebank.md` 取；
 > 时态/hedging/over-claim 规范同样在 phrasebank。数据一律取自 `07_paper/results.yaml` 及其派生
-> `0_result_summaries.md`。润色或改写同时执行 `academic-humanizer` 的事实锁与论断—证据检查。
+> `0_result_summaries.md`。润色或改写同时执行 `academic-humanizer` 的不可变事实清单与论断—证据检查。
 
 ## Contents
 1. IMRaD skeleton + section purposes + result-interpretation-contribution map

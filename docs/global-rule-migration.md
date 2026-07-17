@@ -13,8 +13,8 @@
 | results.yaml、DECISIONS、SESSION_LOG、conventions | `CLAUDE.md` §3–4；`r-biostats/references/result-summary-schema.md` | 单源指针常驻，schema 下沉 |
 | BACKLOG 四列、状态与移出流程 | `project-hygiene.md` §6；`project-init` 模板 | 完整格式下沉，发现即记仍为硬红线 |
 | error/warning/NaN 全量核验 | `CLAUDE.md` §3“执行与错误”；执行 skill 的 RUN/VERIFY | 保留为跨任务硬红线 |
-| 数据缺陷、清洗痕迹与论断强度 | `CLAUDE.md` §3；`academic-publishing`、`academic-humanizer` | 保留科学表达门禁 |
+| 数据缺陷、清洗痕迹与论断强度 | `CLAUDE.md` §3；`academic-publishing`、`academic-humanizer` | 保留科学表达要求 |
 | 目录骨架与探索实验 | `project-hygiene.md`；`biostat-principles` 探索工作流 | 细节下沉 |
 | Git 收尾与双端同步 | `CLAUDE.md` §6；`git-commit-helper` | 保留用户偏好与安全边界 |
-| 完成前长清单 | `CLAUDE.md` §6 最短门禁；`project-hygiene.md` §7；`epi-project-audit` | 通用门禁常驻，领域终检按需加载 |
+| 完成前长清单 | `CLAUDE.md` §6 最短完成条件；`project-hygiene.md` §7；`epi-project-audit` | 通用完成要求常驻，领域终检按需加载 |
 | 多套优先级与记忆锚点 | 仅 `CLAUDE.md` §5 定义优先级；其他 skill 引用 | 消除相反排序，锚点由单源指针覆盖 |

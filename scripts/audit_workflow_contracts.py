@@ -412,7 +412,7 @@ def main() -> int:
             "只要正文时不调用 docx",
             "默认中性排版",
             "无填充、白底黑字",
-            "深色标题条、深色表头和莫名其妙的单元格底色",
+            "深色标题条、深色表头和无明确含义的单元格底色",
         ),
         "skills/python-ecg-analysis/SKILL.md": (
             "只有确认 `--help` 会在业务逻辑前退出且不会写文件时",
@@ -751,7 +751,7 @@ def main() -> int:
             "<EpiAgentKit仓库>/scripts/epiagentkit.py check-project",
         ),
         "README.md": (
-            '审查（六层）都是"不过检不许进下一步"',
+            '审查只看代码即可通过',
         ),
         "skills/project-init/references/project-hygiene.md": (
             "<EpiAgentKit仓库>/scripts/epiagentkit.py check-project",
@@ -1380,7 +1380,7 @@ def main() -> int:
             )
             if result.returncode or result.stdout.strip() or result.stderr.strip():
                 problems.append(
-                    "raw guard self-test: early gate claimed to parse opaque shell writes"
+                    "raw guard self-test: early validation claimed to parse opaque shell writes"
                 )
 
         for path in (

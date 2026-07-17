@@ -36,7 +36,7 @@ Micro-visuals: <模块 ID | 与真实操作对应的微型图元；无则 none>
 Icon strategy: <none / per-major-stage / semantic anchors only>
 Icon map: <stage ID | literal metaphor or micro-visual | why it improves recognition>
 Icon system: <L0/L1/L2/L3, outline/filled, stroke, corner, viewpoint, container, single-color logic>
-Palette source: <现有模板或网页颜色；没有时描述中性色与强调逻辑>
+Palette source: <现有模板或网页颜色；没有时为流程图指定两类语义主色，必要时增加第三类警示或关键状态色；主色相总数不超过三种，黑白灰中性色不计>
 Material and lighting: <有语义的材质与自然光线>
 Text (verbatim): <必须逐字呈现的短标签；无则写 none>
 Safe zones: <标题、正文、按钮或裁切安全区>
@@ -124,7 +124,9 @@ Micro-visuals: <仅填写与真实输入、操作或输出对应的波形/频谱
 Icon strategy: <默认 none；需要时按 diagram-iconography.md 给出 0–4 个语义锚点>
 Icon map: <node ID | literal metaphor | semantic contribution>
 Text (verbatim): use only the supplied labels and numbers, exactly once
+Terminology: every label must come from the source, protocol, or a verified domain term; do not invent abbreviations, compound labels, workflow jargon, colloquial actions, or literal translations
 Composition: <target ratio>; clear main path; branches close to their source; no crossing arrows; adequate label spacing
+Palette: use two semantic hues by default and a third only for a real warning, failure, abnormal state, adverse outcome, or essential key state; never exceed three chromatic hues; neutrals do not count; do not default to blue-and-white
 Constraints: node and edge counts must match the contract; no added, merged, inferred, or omitted steps; approved icons use one coherent family and remain secondary to labels and arrows; no title, legend, or decorative icon
 Avoid: card wall, random 3D symbols, gradients, duplicate nodes, ambiguous arrowheads
 ```
@@ -318,4 +320,4 @@ Second HTTP 524:
 stop retrying; preserve the original; do not interpret timeout as a design failure; do not silently downgrade the model or switch to SVG/API.
 ```
 
-只有成功返回的候选图确实未通过内容精度门禁时，精确结构图才可继续判断 SVG 回退；不得用 Python、PPT/Word 文本框或 SVG 覆盖层补字，也不得以重生图冒充修改成功。
+只有成功返回的候选图确实不满足内容精度要求时，精确结构图才可继续判断 SVG 回退；不得用 Python、PPT/Word 文本框或 SVG 覆盖层补字，也不得以重生图冒充修改成功。

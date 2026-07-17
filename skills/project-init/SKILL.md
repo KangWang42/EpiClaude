@@ -246,7 +246,7 @@ init_project(
 - `PROTOCOL.md` 在分析前锁定研究问题、设计、人群、暴露/干预、终点、伦理/注册和适用报告规范。
 - `SAP.md` 在查看主要结果前锁定 estimand、分析人群、缺失处理、主要模型、诊断、多重性、验证切分、敏感性和亚组分析。
 - 任何方案偏离写入 `DECISIONS.md`，并区分预设与探索性。
-- 每次试新方法先登记 `09_backup/EXPERIMENTS.md`，再在独立目录写 `PLAN.md`、运行并以 `FINDINGS.md` 记录全部结果。未过门禁的结果不进入主 `results.yaml`；需展示时只进入消融/探索性附录。
+- 每次试新方法先登记 `09_backup/EXPERIMENTS.md`，再在独立目录写 `PLAN.md`、运行并以 `FINDINGS.md` 记录全部结果。不满足预设主流程纳入条件的结果不进入主 `results.yaml`；需展示时只进入消融/探索性附录。
 
 ### 4.4 结果单源 `07_paper/results.yaml`（+ 派生 `0_result_summaries.md`）
 

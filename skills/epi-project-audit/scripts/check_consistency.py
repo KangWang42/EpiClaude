@@ -14,7 +14,7 @@
 
 用法：
   python check_consistency.py [项目根=.] [--yaml 07_paper/results.yaml]
-退出码：发现不一致或待复核 → 1（可用作交付门禁）；全过 → 0。
+退出码：发现不一致或待复核 → 1（可用作交付前检查）；全过 → 0。
 """
 import sys, os, re, glob, argparse
 

@@ -66,8 +66,8 @@ class WorkflowRoutingTests(unittest.TestCase):
         self.assertIn("写论文与投稿材料", body)
         self.assertIn("全项目质量审查", body)
         self.assertIn("项目能做到什么", body)
-        self.assertNotIn("逐部件门控写作", body)
-        self.assertNotIn('审查（六层）都是"不过检不许进下一步"', body)
+        self.assertNotIn("一次性生成全文", body)
+        self.assertNotIn('审查只看代码即可通过', body)
 
     def test_publication_figures_trigger_is_statistical(self) -> None:
         body = (ROOT / "skills" / "publication-figures" / "SKILL.md").read_text(

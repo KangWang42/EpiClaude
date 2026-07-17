@@ -249,7 +249,7 @@ init_project <- function(name,
     file.path(proj, "SAP.md"), useBytes = TRUE
   )
 
-  # 探索实验总索引：记录全部尝试，主线只接收过门禁结果 ----
+  # 探索实验总索引：记录全部尝试，主线只接收满足预设条件的结果 ----
   writeLines(
     c("# 探索实验索引",
       "",
@@ -448,7 +448,7 @@ init_project <- function(name,
     file.path(proj, "02_code/vendored", paste0(names(helper_sources), ".R")),
     overwrite = TRUE
   )
-  if (!all(copied)) stop("项目 helper 复制失败；初始化未通过可复现性门禁")
+  if (!all(copied)) stop("项目 helper 复制失败；初始化未通过可复现性检查")
 
   # 02_code/01_data_cleaning.R ----------------------------
   cleaning_r <- c(

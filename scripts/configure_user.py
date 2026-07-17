@@ -162,7 +162,7 @@ def main(argv: list[str] | None = None, prog: str | None = None) -> int:
     print("- 本机环境：只安装 EpiAgentKit 文件，不安装或升级 R、Python 及其它运行环境或依赖")
     if "skills" in components:
         print(
-            "- 冲突门禁：安装前遍历 Skill 发现目录；同名或触发范围冲突的 "
+            "- 冲突检查：安装前遍历 Skill 发现目录；同名或触发范围冲突的 "
             "本地 Skill 将直接删除（--dry-run 仅预览）"
         )
     if target in {"codex", "all"}:

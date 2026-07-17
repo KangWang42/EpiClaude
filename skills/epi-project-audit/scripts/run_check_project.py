@@ -65,7 +65,7 @@ def resolve_cli(explicit_root: Path | None = None) -> Path:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Run the central EpiAgentKit check-project gate."
+        description="Run the central EpiAgentKit check-project validation."
     )
     parser.add_argument("project", type=Path, nargs="?", default=Path.cwd())
     parser.add_argument("--json", action="store_true", dest="as_json")
