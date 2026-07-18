@@ -814,7 +814,9 @@ def main() -> int:
             "docs/assets/platform-architecture.webp",
             "docs/demo/output/forest-plot.png",
             "docs/demo/output/forest-plot-mobile.png",
+            "docs/demo/output/forest-plot.pdf",
             "docs/demo/generate_forest_demo.R",
+            "docs/demo/forest-demo-data.csv",
         ),
         "skills/git-commit-helper/SKILL.md": (
             "create the commit automatically",
