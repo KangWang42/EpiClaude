@@ -105,14 +105,18 @@ make_theme <- function(base_size) {
 demo_theme <- make_theme(10)
 
 build_plot <- function(data_view, ci_column, plot_theme, tick_values) {
+  n <- nrow(dat)
+  if (nrow(data_view) != n) {
+    stop("data_view 行数必须与演示数据一致，否则 est/lower/upper 会错位。")
+  }
   forest(
     data_view,
     est = dat$estimate,
     lower = dat$lower,
     upper = dat$upper,
-    sizes = c(0.55, rep(0.38, nrow(dat) - 1)),
+    sizes = c(0.55, rep(0.38, n - 1)),
     ci_column = ci_column,
-    is_summary = seq_len(nrow(dat)) == 1,
+    is_summary = seq_len(n) == 1,
     ref_line = 1,
     x_trans = "log",
     xlim = c(0.45, 1.60),
