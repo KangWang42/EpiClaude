@@ -12,7 +12,7 @@ Shared research workflow kit for Claude Code and Codex, built for epidemiology a
 ![Python tooling](https://img.shields.io/badge/Python-project_tooling-3776AB?style=flat-square)
 ![Agent Skills](https://img.shields.io/badge/Agent_Skills-progressive_disclosure-0F766E?style=flat-square)
 
-[30 秒安装](#30-秒安装) · [项目能做什么](#项目能做到什么) · [完整工作流](#一张图看懂完整项目) · [双平台架构](#它如何工作) · [安全边界](#安全边界) · [维护指南](#维护与贡献)
+[30 秒安装](#30-秒安装) · [项目能做什么](#项目能做到什么) · [真实 Demo](#从一句话到真实产物) · [完整工作流](#一张图看懂完整项目) · [双平台架构](#它如何工作) · [安全边界](#安全边界) · [维护指南](#维护与贡献)
 
 </div>
 
@@ -52,6 +52,26 @@ Shared research workflow kit for Claude Code and Codex, built for epidemiology a
 
 全面审查这个项目的命名、代码、结果、论文和交付包是否一致。
 ```
+
+## 从一句话到真实产物
+
+下面的森林图不是概念插图或生成式界面，而是使用仓库的统计出图规则在固定合成数据上实际运行后导出的产物。示例只用于验证工作流和文件输出，不代表真实医学结论。
+
+**输入**
+
+```text
+使用合成示例数据生成一张亚组森林图，展示比值比及 95% 置信区间；
+同时导出 PDF 和 300 DPI PNG，并核对字体、参考线、置信区间和异常输出。
+```
+
+**实际输出**
+
+<picture>
+  <source media="(max-width: 600px)" srcset="docs/demo/output/forest-plot-mobile.png">
+  <img src="docs/demo/output/forest-plot.png" alt="固定合成数据生成的亚组森林图，左侧列出亚组和样本量，右侧展示比值比及 95% 置信区间">
+</picture>
+
+`biostat-principles → publication-figures` 负责口径、数值验证、物理尺寸、中文字体和 PDF/PNG 双格式导出。[查看 PDF](docs/demo/output/forest-plot.pdf) · [查看复现脚本](docs/demo/generate_forest_demo.R) · [查看示例数据](docs/demo/forest-demo-data.csv)
 
 ## 一张图看懂完整项目
 

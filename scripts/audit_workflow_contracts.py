@@ -794,6 +794,8 @@ def main() -> int:
             "本检查器不会自动安装或升级依赖",
         ),
         "README.md": (
+            "从一句话到真实产物",
+            "固定合成数据",
             "项目能做到什么",
             "一张图看懂完整项目",
             "30 秒安装",
@@ -810,6 +812,9 @@ def main() -> int:
             "docs/assets/epiagentkit-hero.webp",
             "docs/assets/research-workflow.webp",
             "docs/assets/platform-architecture.webp",
+            "docs/demo/output/forest-plot.png",
+            "docs/demo/output/forest-plot-mobile.png",
+            "docs/demo/generate_forest_demo.R",
         ),
         "skills/git-commit-helper/SKILL.md": (
             "create the commit automatically",
