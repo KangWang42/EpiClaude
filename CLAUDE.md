@@ -58,6 +58,7 @@ R / Python 流行病学项目的跨任务硬红线。领域流程、模板与实
 ### 执行与错误
 
 - 代码写完必须实跑。多行 R 写入 `.R` 文件后用 `Rscript 文件.R` 执行；本环境的 `Rscript -e` 只用于一行小命令。
+- 编写 bootstrap、置换、模拟、重采样、交叉验证、超参数组合或独立文件处理等可并行且计算密集的 R / Python 代码时，先按 `biostat-principles/references/compute-resources.md` 识别当前进程可用逻辑线程和任务数，自动设置保留系统余量的 worker；不得写死本机核数，不得把外层多进程与模型 / BLAS 内层多线程叠加。小任务、I/O 等待、顺序依赖或并行开销预计更高时保持串行，并记录判定依据。
 - 不以 tail 或退出码代替核验；全量扫描 `error|warning|traceback|failed|nan`。每项异常必须归因并处理：代码 bug 修复重跑，数据问题记 `DECISIONS.md`，经证实的库噪声记 `SESSION_LOG.md`。
 - 发现 NA、NR、空值、记录丢失或 warning 时，回到最早数据与链路定位原因；不得以比例小或“基本成功”带过。
 - 试新方法或优化模型不得直接改主流程。按 `biostat-principles` 的隔离实验、公平对照和主流程纳入条件执行。

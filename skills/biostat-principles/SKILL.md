@@ -116,6 +116,7 @@ description: |
 - 重要分析有 `sessionInfo()` 或 `renv.lock` 记录版本
 - `05_reports/` 的结果包必须 **自包含**：数据、脚本、中间结果、图表都在包内
 - 脚本之间不靠当前 R 环境变量传值，只靠 `06_results/` 下的落盘文件传值
+- 遇到可拆分且计算密集的重复任务时，按 [references/compute-resources.md](references/compute-resources.md) 在运行时检测可用逻辑线程、任务数和内存约束，生成可复现且不过度订阅的 R / Python 并行代码；并行只改变执行资源，不得改变分析人群、抽样单位、模型、随机种子方案或结果顺序
 - **写完脚本必须跑一遍**：用 `Rscript 02_code/NN_xxx.R` 验证无报错、预期输出到位
 
 **复现自检**：关掉 RStudio、重开空白 R session、cd 到项目根、`Rscript 02_code/01_xxx.R` —— 能跑通吗？不能跑通 = 任务未完成。

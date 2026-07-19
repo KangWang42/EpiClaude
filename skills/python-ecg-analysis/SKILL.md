@@ -78,11 +78,12 @@ description: |
 ## 4. 执行与验证
 
 1. 对修改的 Python 文件运行 `python -m py_compile <files>`。
-2. 使用从源码、项目文档及无副作用帮助入口核实的真实命令实跑，不凭本 skill 生成入口；首次运行前确认输出位置与原始数据只读边界。
-3. 保存完整 stdout/stderr，并全量扫描 `error|warning|traceback|failed|nan`。
-4. 对每项异常定位为代码、数据、阈值或库问题；修复后重跑，不能用“失败比例低”带过。
-5. 核对每一步的文件数、记录数、患者数、轮次数、未匹配数和输出 schema。
-6. 对表图和模型结果做范围、单位、方向、泄漏与重复性检查；实际生成统计图时调用 `publication-figures`。
-7. 结果变化同步项目结果单源，方法变化同步 `DECISIONS.md`，操作同步 `SESSION_LOG.md`，新缺口同步 `BACKLOG.md`。
+2. 对独立记录预处理、bootstrap、交叉验证或超参数组合，按 `../biostat-principles/references/compute-resources.md` 判断并行收益，运行时检测可用逻辑线程并限制 worker；CPU 密集型用进程或模型原生线程，I/O 密集型才用线程，不得嵌套占满两层线程。
+3. 使用从源码、项目文档及无副作用帮助入口核实的真实命令实跑，不凭本 skill 生成入口；首次运行前确认输出位置与原始数据只读边界。
+4. 保存完整 stdout/stderr，并全量扫描 `error|warning|traceback|failed|nan`。
+5. 对每项异常定位为代码、数据、阈值或库问题；修复后重跑，不能用“失败比例低”带过。
+6. 核对每一步的文件数、记录数、患者数、轮次数、未匹配数和输出 schema。
+7. 对表图和模型结果做范围、单位、方向、泄漏与重复性检查；并行代码另以固定小样本核对串行与并行结果、任务 ID 和随机流；实际生成统计图时调用 `publication-figures`。
+8. 结果变化同步项目结果单源，方法变化同步 `DECISIONS.md`，操作同步 `SESSION_LOG.md`，新缺口同步 `BACKLOG.md`。
 
 完成报告必须列出实际读取的项目规则、实际运行命令、患者级切分、lineage 核对、异常处理及输出位置。

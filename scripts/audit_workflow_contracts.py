@@ -252,6 +252,8 @@ def main() -> int:
             "不负责安装或升级 R、Python",
             "只说明检测结果、影响与用户下一步可执行的准备方式",
             "不代用户创建环境或执行安装、升级、降级命令",
+            "compute-resources.md",
+            "不得把外层多进程与模型 / BLAS 内层多线程叠加",
         ),
         "AGENTS.md": (
             "Treat skill improvement as regression-safe optimization",
@@ -334,6 +336,13 @@ def main() -> int:
             "不用询问代替排错",
             "依赖或运行环境缺失时说明检测结果",
             "不代为安装",
+            "串并行等价性检查",
+            "外层并行时把每个 worker 的模型 / BLAS 内层线程限制为 1",
+        ),
+        "skills/r-biostats/references/code-style.md": (
+            "默认仍为串行",
+            "compute-resources.md",
+            "轻量批处理不为提高 CPU 占用机械改成并行",
         ),
         "skills/biostat-principles/SKILL.md": (
             "09_backup/EXPERIMENTS.md",
@@ -343,6 +352,18 @@ def main() -> int:
             "轻量任务",
             "不创建七层目录",
             "完成并验证后自动 commit",
+            "references/compute-resources.md",
+            "并行只改变执行资源",
+        ),
+        "skills/biostat-principles/references/compute-resources.md": (
+            "parallelly::availableCores",
+            "os.process_cpu_count",
+            "不得同时占满外层 worker 与内层线程",
+            "furrr_options(seed = 123)",
+            "if __name__ == \"__main__\"",
+            "固定小样本",
+            "任务 ID",
+            "自动盘点物理核数和逻辑线程数",
         ),
         "skills/consulting-delivery/SKILL.md": (
             "09_backup/INDEX.md",
@@ -452,6 +473,8 @@ def main() -> int:
             "只有确认 `--help` 会在业务逻辑前退出且不会写文件时",
             "无法证明入口的帮助调用无副作用时，不执行它",
             "上游依赖：开工前对齐 biostat-principles",
+            "compute-resources.md",
+            "不得嵌套占满两层线程",
         ),
         "skills/publication-figures/SKILL.md": (
             "发表级统计图、数据图和含坐标或尺度映射的结果图",
