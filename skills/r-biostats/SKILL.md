@@ -41,7 +41,7 @@ description: |
 | 阶段 | 不允许进入下一阶的情况 |
 |------|---------------------|
 | PLAN | 口径有歧义、输入路径不明、没写验证标准 |
-| CODE | 脚本超过 300 行但没拆分、用了不必要的 for 循环/绝对路径/print 调试；正式项目脚本未按项目规则编号 |
+| CODE | 线性分析被不必要地函数化、连续管道被无意义中间对象切碎，或用了绝对路径/print 调试；正式项目脚本未按项目规则编号 |
 | RUN | 没真跑过、有 warning 没处理、报错被 `tryCatch` 吞掉 |
 | VERIFY | 样本量与预期不符、数字明显异常（NA 爆表、HR=Inf）、图表留白/乱码/空白页 |
 | DOC | 正式项目的 session_log 未更新，或结果变了但 results.yaml（→派生 md）没改；轻量任务未说明输入、输出与验证 |
@@ -96,7 +96,7 @@ description: |
 | 违禁 | 替代 |
 |------|------|
 | `print()`, `cat()` 调试 | 直接返回对象，RStudio 里跑分块 |
-| `for (i in 1:n)` 循环 | `purrr::map_*()` / `across()` |
+| `for (i in 1:n)` 循环 | 先定义控制向量，再用 `map()` / `map2()` / `pmap()`（或对应的 `walk()` / `walk2()`）；确需 `for` 时用 `seq_along()` |
 | 绝对路径 `"C:/Users/..."` | 相对路径 `"01_data/rawdata/xx.csv"` |
 | `setwd()` | 以项目根为工作目录（Rproj 或 here） |
 | 修改 `01_data/rawdata/` | 只读，派生写到 `06_results/` |
@@ -113,9 +113,9 @@ description: |
 ### 必须
 
 - **默认语言 R**：`02_code/` 分析脚本默认 `.R`，仅特殊要求项目用 Python（见 project-init `references/project-hygiene.md`）。
-- **代码风格遵 [references/code-style.md](references/code-style.md)**（软约束，服从工作流/红线）：管道为主线、中间变量少而短且语义化命名（`data`→`data_neat`→`data_baseline`，不用 `tmp/df1`）、`map`/`across`/`case_when` 优先于循环与连串 if、输出干净（最终脚本无调试 `cat`/`print`）、`# 节 ----` 分节 + 关键步骤一句话注释、不留死代码。
+- **代码风格遵 [references/code-style.md](references/code-style.md)**（软约束，服从工作流/红线）：依赖直接逐行 `library()`；顺序式 R 分析不按 Python 习惯把每一步封成函数；管道尽量连续，中间对象少且语义清楚；批处理先定义控制向量，再按返回值或副作用选择 `map*()` / `walk*()`；RUN / VERIFY 必做，但不把硬编码核验块和调试展示默认塞进交付脚本。
 - R 脚本顶部：`library()` 全部依赖 + `set.seed(123)` + 注释说明本脚本目的/输入/输出
-- 命名：文件 `NN_描述.R`、变量 `snake_case`、函数 `do_something()`
+- 命名：文件 `NN_描述.R`、变量 `snake_case`；函数只在复用、参数化批处理、稳定工具或复杂算法边界确有必要时抽取，并使用 `snake_case`
 - 中文注释关键步骤（为什么这样切分、为什么选这个模型）
 - 双格式导出：`ggsave()` 同时存 PDF (`cairo_pdf`) + PNG (`ragg::agg_png`, 300dpi)
 - 编码 UTF-8，不要 GBK
@@ -125,32 +125,23 @@ description: |
 
 ## 四、技术栈
 
+按任务实际使用选择依赖，每个包直接写一行 `library()`；不要把下列清单全部复制进脚本，也不要用 `suppressPackageStartupMessages()` 包裹。
+
 ```r
-# 核心（默认加载）
-library(tidyverse)   # 数据处理 + 绘图
-library(here)        # 相对路径
-library(readxl);  library(writexl)  # Excel I/O
+# 核心数据处理与 I/O
+library(tidyverse)
+library(here)
+library(readxl)
+library(writexl)
 
-# 表格
-library(gtsummary)   # Table 1 / 回归表
-library(compareGroups)  # 基线表备选（论文常用）
-library(flextable)   # Word 表格导出
-
-# 分析
-library(broom);  library(broom.mixed)  # 结果整理
-library(survival); library(survminer)  # 生存
-library(mediation); library(lavaan)    # 中介
-library(meta); library(metafor)        # Meta
-library(tidymodels)  # 统一建模框架（需要时）
-
-# 可视化
-library(ggsci)       # Lancet/JAMA/NEJM 配色
-library(ragg)        # 中文 PNG 导出
-library(patchwork)   # 图面板拼接
-library(ggpubr)      # P 值标注
+# 按任务选择表格、模型或绘图包
+library(gtsummary)
+library(broom)
+library(survival)
+library(ggsci)
 ```
 
-**导入顺序**: 先 `tidyverse`，再领域包。避免 `plyr` / `reshape` 这些老包。
+**导入顺序**：先 `tidyverse`，再领域包。避免混用 `plyr` / `reshape` 与 `dplyr`。
 
 ---
 
@@ -271,16 +262,7 @@ table1 |>
 
 ### 4. 主分析（CODE + RUN）
 
-按 `references/[对应分析].md` 里的模板落地。**跑完后必须执行 VERIFY**：
-
-```r
-# VERIFY 检查点
-stopifnot(
-  nobs(fit) == nrow(cohort),      # 样本量一致
-  all(!is.na(coef(fit))),         # 无 NA 系数
-  broom::glance(fit)$p.value < 1  # P 值合理
-)
-```
+按 `references/[对应分析].md` 里的模板落地。跑完后必须执行 VERIFY：核对分析样本量、系数缺失、P 值范围、模型假设与收敛状态，并扫描完整运行输出。当前批次的固定样本量等核验放在 RUN / VERIFY 过程或审计记录中，不默认把一组硬编码 `stopifnot()` 插进交付脚本；只有需要长期保护的研究设计不变量才保留为代码约束。
 
 ### 5. 可视化（CODE）
 
@@ -340,7 +322,7 @@ render_summary_md(yp, "07_paper/0_result_summaries.md")  # 派生人读版
 ## 九、R 代码风格（PREFERENCE）
 
 风格细则与好/差对照见 [references/code-style.md](references/code-style.md)（软约束，服从工作流/红线）。一句话：
-管道为主线、中间变量少而短且语义化命名（`data`→`data_neat`→`data_baseline`，不用 `tmp1/tmp2`）、`map`/`across`/`case_when` 优先于循环与连串 if、最终脚本输出干净无调试 `cat`/`print`、`# 节 ----` 分节 + 关键步骤一句话注释、不留死代码。
+直接逐行 `library()`；按 R 的顺序式分析习惯分节，不把每一步封成函数；一条变换尽量用管道连到底；中间对象少而语义清楚；先定义控制向量，再用 `map2()` / `walk()` / `walk2()` 等完成批处理；核验过程与最终脚本分离；注释只解释口径与理由，不翻译代码。
 
 ---
 
