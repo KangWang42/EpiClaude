@@ -5,7 +5,7 @@
 # 设计目标：
 #   1. 字体：中文 宋体 / 英文 Times New Roman（同一段落自动分流）
 #   2. 版式多样：纯文字 / 双栏文字 / 左右图文 / 上下图文 / 整图 / 表格 / 文表 / 代码示例 / 章节页
-#   3. 充实排版：正文区占满约 80% 版面，标题带主色下划线规则
+#   3. 内容驱动：主信息、证据与解释闭环，按实际密度平衡字号、间距和留白
 #   4. 强调：重点内容加粗 + 主色
 # ============================================================================
 
@@ -44,9 +44,6 @@ SYSU <- list(
 
 # 几何布局（英寸，幻灯片 13.333 x 7.5）
 G <- list(
-  # 与模板 "Title and Content" 的绿色竖条(矩形 8, x=0.667,y=0.50,h=0.575)对齐：
-  # 标题文字框左缘紧贴竖条右侧、垂直居中于竖条，底部横线与竖条底缘齐平。
-  title    = ph_location(left = 0.92, top = 0.50, width = 11.5, height = 0.575),
   body     = ph_location(left = 0.85, top = 1.58, width = 11.60, height = 5.45),
   col_l    = ph_location(left = 0.85, top = 1.58, width = 5.55,  height = 5.45),
   col_r    = ph_location(left = 7.00, top = 1.58, width = 5.45,  height = 5.45),
@@ -55,6 +52,7 @@ G <- list(
   bot_box  = ph_location(left = 0.85, top = 5.10, width = 11.60, height = 1.90),
   page     = ph_location(left = 12.35, top = 7.05, width = 0.80, height = 0.35)
 )
+.HEADER_RULE_LINE_HEIGHT <- 0.04
 
 # ============================================================================
 # 1b. 模板注册表（default = 原模板2中大医学；public_health = 原模板1公卫学院）
@@ -65,12 +63,24 @@ G <- list(
 .TPL_REG <- list(
   default = list(file = "template.pptx",
                  cover = "1_空白", content = "3_空白", blank = "空白",
-                 cover_style = "native"),  # 棕榈封面/绿框+校徽+水印
+                 cover_style = "native",
+                 header = list(
+                   anchor_bottom = 0.8101,
+                   title = list(left = 0.92, top = 0.2351, width = 11.5, height = 0.5750),
+                   rule = list(left = 0.92, top = 0.7701, width = 11.5,
+                               height = .HEADER_RULE_LINE_HEIGHT)
+                 )),  # 标题横线与左侧两块绿色矩形底边共线
   public_health = list(file = "template-公卫学院.pptx",
                        cover = "标题幻灯片", content = "Title and Content", blank = "Blank",
-                       cover_style = "green")
+                       cover_style = "green",
+                       header = list(
+                         anchor_bottom = 1.0749,
+                         title = list(left = 0.92, top = 0.5000, width = 11.5, height = 0.5749),
+                         rule = list(left = 0.92, top = 1.0349, width = 11.5,
+                                     height = .HEADER_RULE_LINE_HEIGHT)
+                       ))  # 标题横线与版式绿色竖条底边共线
 )
-.ACT <- new.env(parent = emptyenv())   # 活动模板：master/cover/content/blank/cover_style
+.ACT <- new.env(parent = emptyenv())   # 活动模板：master/cover/content/blank/cover_style/header
 
 .assets_dir <- function() {
   skill_roots <- path.expand(c(
@@ -105,11 +115,13 @@ cd  <- function(text, size = SYSU$sz$code, color = SYSU$col$text) ftext(text, .f
 sp  <- function(h = 8) fpar(ftext("", .fp(h)))   # 垂直间距
 para <- function(...) fpar(...)
 
-# 项目符号段（主色圆点 + 自动行距与段后间距，撑满版面）
-bullet <- function(head, body = "", size = SYSU$sz$body) {
+# 项目符号段（主色圆点 + 可调行距与段后间距）
+bullet <- function(head, body = "", size = SYSU$sz$body,
+                   line_spacing = 1.45, space_after = 9) {
   runs <- if (nzchar(body)) list(bd(paste0("● ", head), size), tx(body, size))
           else list(bd(paste0("● ", head), size))
-  do.call(fpar, c(runs, list(fp_p = fp_par(line_spacing = 1.45, padding.bottom = 9, padding.top = 2))))
+  do.call(fpar, c(runs, list(fp_p = fp_par(line_spacing = line_spacing,
+                                            padding.bottom = space_after, padding.top = 2))))
 }
 # 次级项目符号（缩进、空心点）
 sub_bullet <- function(text, size = SYSU$sz$body - 1) {
@@ -117,10 +129,13 @@ sub_bullet <- function(text, size = SYSU$sz$body - 1) {
        fp_p = fp_par(line_spacing = 1.35, padding.left = 30, padding.bottom = 5))
 }
 
-# 成段正文（两端对齐 + 较大行距），用于减少"满屏列表"、增加文字感。
+# 成段正文（可调对齐、行距和段间距），用于保留连续论证。
 # 接受若干 ftext run，例如 prose(bd("背景："), tx("一段较长的说明文字……"))
-prose <- function(..., align = "left") {
-  fpar(..., fp_p = fp_par(line_spacing = 1.5, padding.bottom = 11, padding.top = 2, text.align = align))
+prose <- function(..., align = "left", line_spacing = 1.5,
+                  space_after = 11, space_before = 2) {
+  fpar(..., fp_p = fp_par(line_spacing = line_spacing,
+                          padding.bottom = space_after, padding.top = space_before,
+                          text.align = align))
 }
 
 # 层级小标题（框架感：1.1 / 1.1.1 / ① 等），主色加粗，自动留白。
@@ -132,42 +147,73 @@ heading <- function(text, size = SYSU$sz$h2) {
 # 带编号条目（编号自带语义，不再加圆点）。num 例："①" / "1." / "(1)"
 #   - 有 body：编号+小标题加粗主色，后接正文  →  "① 信息损失：正文……"
 #   - 仅 head：编号加粗，句子正常字重           →  "1 一句结论……"
-num_item <- function(num, head, body = "", size = SYSU$sz$body) {
+num_item <- function(num, head, body = "", size = SYSU$sz$body,
+                     line_spacing = 1.45, space_after = 9) {
   runs <- if (nzchar(body)) list(bd(paste0(num, " ", head, "："), size), tx(body, size))
           else if (nzchar(head)) list(bd(paste0(num, " "), size), tx(head, size))
           else list(bd(num, size))
-  do.call(fpar, c(runs, list(fp_p = fp_par(line_spacing = 1.45, padding.bottom = 9, padding.top = 2, padding.left = 4))))
+  do.call(fpar, c(runs, list(fp_p = fp_par(line_spacing = line_spacing,
+                                            padding.bottom = space_after,
+                                            padding.top = 2, padding.left = 4))))
 }
 
 # ============================================================================
 # 3. 内部基础函数
 # ============================================================================
 .title_fp  <- function() .fp(SYSU$sz$title, TRUE, SYSU$col$title)
-# 竖条由模板 "矩形 8" 提供；此处仅加底部主色横线，与竖条底缘齐平，二者构成对齐的 L 形。
-.title_par <- function() fp_par(border.bottom = fp_border(color = SYSU$col$accent, width = 1.2),
-                                padding.left = 6, padding.bottom = 6, padding.top = 0)
+# 两套模板的底边都使用显式 flextable 横线，避免依赖不稳定的段落边框渲染。
+.title_par <- function() fp_par(padding.left = 6, padding.bottom = 6, padding.top = 0)
 
-# 细横线（flextable 实现，跨模板可靠渲染；border 在部分版式里不渲染时用它）
+# 细横线（flextable 实现，跨模板可靠渲染）
 .rule_ft <- function(w, color = SYSU$col$accent, lw = 1.4) {
   ft <- flextable(data.frame(x = ""))
   ft <- delete_part(ft, "header")
   ft <- border_remove(ft)
   ft <- hline_bottom(ft, border = fp_border(color = color, width = lw), part = "body")
   ft <- width(ft, j = 1, width = w)
-  ft <- height(ft, i = 1, height = 0.04, part = "body")
+  ft <- height(ft, i = 1, height = .HEADER_RULE_LINE_HEIGHT, part = "body")
   ft <- padding(ft, padding = 0, part = "body")
   ft <- fontsize(ft, size = 1, part = "body")
   ft <- color(ft, color = "white", part = "body")
   ft
 }
 
+.validate_header <- function(header) {
+  if (!is.list(header) || !all(c("anchor_bottom", "title", "rule") %in% names(header))) {
+    stop("模板 header 配置缺少 anchor_bottom、title 或 rule")
+  }
+  title <- header$title
+  if (!is.list(title) || !all(c("left", "top", "width", "height") %in% names(title))) {
+    stop("模板 header$title 配置不完整")
+  }
+  if (abs(title$top + title$height - header$anchor_bottom) > 1e-4) {
+    stop("模板标题底边未与 header$anchor_bottom 对齐")
+  }
+  if (!is.null(header$rule)) {
+    rule <- header$rule
+    if (!is.list(rule) || !all(c("left", "top", "width", "height") %in% names(rule))) {
+      stop("模板 header$rule 配置不完整")
+    }
+    if (abs(rule$height - .HEADER_RULE_LINE_HEIGHT) > 1e-4 ||
+        abs(rule$top + rule$height - header$anchor_bottom) > 1e-4) {
+      stop("模板横线未与 header$anchor_bottom 对齐")
+    }
+  }
+  invisible(header)
+}
+
+.header_location <- function(part) {
+  spec <- .L("header")[[part]]
+  if (is.null(spec)) return(NULL)
+  do.call(ph_location, spec)
+}
+
 .add_title <- function(ppt, title) {
   ppt <- ph_with(ppt, value = fpar(ftext(title, .title_fp()), fp_p = .title_par()),
-                 location = G$title)
-  # 当前默认中大医学模板无绿色竖条、段落边框不渲染：补一条可靠的 flextable 横线
-  if (exists("cover_style", envir = .ACT) && identical(.L("cover_style"), "native")) {
-    ppt <- ph_with(ppt, .rule_ft(11.5),
-                   location = ph_location(left = 0.92, top = 1.04, width = 11.5, height = 0.06))
+                 location = .header_location("title"))
+  rule <- .L("header")$rule
+  if (!is.null(rule)) {
+    ppt <- ph_with(ppt, .rule_ft(rule$width), location = .header_location("rule"))
   }
   ppt
 }
@@ -255,12 +301,14 @@ sysu_init <- function(template = "default") {
     reg  <- if (grepl("公卫|public", path, ignore.case = TRUE)) .TPL_REG$public_health else .TPL_REG$default
   }
   if (is.na(path) || !file.exists(path)) stop("找不到模板文件: ", path)
+  .validate_header(reg$header)
   ppt <- read_pptx(path)
   assign("master",      layout_summary(ppt)$master[1], .ACT)   # 直接读，避免隐藏字符
   assign("cover",       reg$cover,       .ACT)
   assign("content",     reg$content,     .ACT)
   assign("blank",       reg$blank,       .ACT)
   assign("cover_style", reg$cover_style, .ACT)
+  assign("header",      reg$header,      .ACT)
   while (length(ppt) > 0) ppt <- remove_slide(ppt, 1)          # 清空自带演示页
   ppt
 }
@@ -313,18 +361,21 @@ sysu_add_section <- function(ppt, title, subtitle = "") {
   ppt
 }
 
-#' 纯文字页（全宽）
-sysu_add_text <- function(ppt, title, content) {
+#' 纯文字页（全宽）；稀疏但必要的内容可通过 top/height 调整纵向位置。
+sysu_add_text <- function(ppt, title, content, top = 1.58, height = 5.45) {
   ppt <- .new(ppt, title)
-  ppt <- ph_with(ppt, content, location = G$body)
+  ppt <- ph_with(ppt, content,
+                 location = ph_location(left = 0.85, top = top, width = 11.60, height = height))
   .add_pagenum(ppt)
 }
 
-#' 双栏文字页
-sysu_add_two_text <- function(ppt, title, left, right) {
+#' 双栏文字页；top/height 同时控制两栏，便于按内容密度平衡页面。
+sysu_add_two_text <- function(ppt, title, left, right, top = 1.58, height = 5.45) {
   ppt <- .new(ppt, title)
-  ppt <- ph_with(ppt, left,  location = G$col_l)
-  ppt <- ph_with(ppt, right, location = G$col_r)
+  ppt <- ph_with(ppt, left,
+                 location = ph_location(left = 0.85, top = top, width = 5.55, height = height))
+  ppt <- ph_with(ppt, right,
+                 location = ph_location(left = 7.00, top = top, width = 5.45, height = height))
   .add_pagenum(ppt)
 }
 
@@ -429,15 +480,15 @@ sysu_add_text_table <- function(ppt, title, content, ft, top = NULL) {
   .add_pagenum(ppt)
 }
 
-# ---- 卡片网格（统一淡灰底 + 主色细左条，内容垂直居中协调）----
-.CARD_BG   <- "#F4F5F7"   # 统一淡灰背景（避免彩色方块）
-.CARD_BD   <- "#DCDFE4"   # 细边框（浅灰）
-.CARD_BAR  <- "#006D5B"   # 左侧细色条（品牌绿，唯一点缀色）
+# ---- 卡片网格（近白绿灰底 + 主色细左条，按内容高度平衡分布）----
+.CARD_BG   <- "#F7FAF8"   # 近白绿灰，与白底有可辨识明度差但不形成大色块
+.CARD_BD   <- "#C8D9D1"   # 低对比绿灰细边框
+.CARD_BAR  <- "#006D5B"   # 品牌绿为唯一高饱和点缀色
 # 卡片内文本属性（中英分流，沿用宋体/Times）
 .cfp <- function(size, bold, color) fp_text(font.size = size, bold = bold, color = color,
   font.family = SYSU$en, hansi.family = SYSU$cn, eastasia.family = SYSU$cn, cs.family = SYSU$en)
 
-#' 卡片网格页。cards = list(list(tag, head, body), ...)（统一淡灰风格，color 参数已忽略）
+#' 卡片网格页。cards = list(list(tag, head, body), ...)（统一近白绿灰风格）
 #' @param cols 每行卡片数（默认：<=3 一行；4 用 2x2；6 用 2x3）
 #' @param intro 顶部可选说明（block_list）
 #' @param card_h 单卡高度（英寸）；默认按内容自适应并垂直居中。给定则固定。
@@ -455,13 +506,23 @@ sysu_add_cards <- function(ppt, title, cards, cols = NULL, intro = NULL, card_h 
   L <- 0.85; R <- 12.48; gap <- 0.30
   cw <- (R - L - gap * (cols - 1)) / cols
   bottom <- 6.95; avail <- bottom - top0
-  # 卡片取“贴合内容”的高度并紧跟 intro 顶端对齐——不强行拉满，底部留白即可。
+  # 依据最长正文的估计行数确定卡片高度，再把整组放到正文区视觉平衡位置。
   if (is.null(card_h)) {
     fill <- (avail - gap * (rows - 1)) / rows
-    cap  <- if (rows == 1) 2.55 else 2.05      # 内容尺寸上限，避免高卡内部大片空白
-    card_h <- min(fill, cap)
+    chars_per_line <- max(12, floor(cw * 5.0))
+    body_lines <- max(vapply(cards, function(card) {
+      body <- if (is.null(card$body)) "" else as.character(card$body)
+      max(1, ceiling(nchar(body, type = "chars") / chars_per_line))
+    }, numeric(1)))
+    content_h <- 1.18 + 0.34 * body_lines
+    cap <- if (rows == 1) 2.45 else 2.20
+    card_h <- min(fill, max(1.75, min(content_h, cap)))
   }
-  ytop <- top0
+  grid_h <- rows * card_h + gap * (rows - 1)
+  # 无引言的单行卡片按正文区垂直居中；有引言时让卡片靠近说明文字，
+  # 避免引言与卡片之间出现比卡片内部还大的无意义间隔。
+  balance <- if (is.null(intro)) 0.50 else 0.12
+  ytop <- top0 + max(avail - grid_h, 0) * balance
 
   for (i in seq_len(n)) {
     cd <- cards[[i]]
@@ -473,15 +534,17 @@ sysu_add_cards <- function(ppt, title, cards, cols = NULL, intro = NULL, card_h 
     ft <- border(ft, border.top = fp_border(color = .CARD_BD, width = 0.75),
                  border.bottom = fp_border(color = .CARD_BD, width = 0.75),
                  border.right = fp_border(color = .CARD_BD, width = 0.75),
-                 border.left = fp_border(color = .CARD_BAR, width = 3), part = "body")
-    hd <- if (!is.null(cd$tag) && nzchar(cd$tag)) paste0(cd$tag, "  ", cd$head) else cd$head
+                 border.left = fp_border(color = .CARD_BAR, width = 2.25), part = "body")
+    tag <- if (!is.null(cd$tag) && nzchar(cd$tag)) paste0(cd$tag, "  ") else ""
     ft <- mk_par(ft, i = 1, j = 1, value = as_paragraph(
-      as_chunk(hd, props = .cfp(SYSU$sz$h2, TRUE, SYSU$col$title)),
+      as_chunk(tag, props = .cfp(SYSU$sz$h2, TRUE, SYSU$col$accent)),
+      as_chunk(cd$head, props = .cfp(SYSU$sz$h2, TRUE, SYSU$col$title)),
       as_chunk("\n", props = .cfp(7, FALSE, SYSU$col$title)),
-      as_chunk(cd$body, props = .cfp(SYSU$sz$body - 1, FALSE, SYSU$col$text))))
+      as_chunk(cd$body, props = .cfp(SYSU$sz$body, FALSE, SYSU$col$text))))
     ft <- valign(ft, valign = "center", part = "body")     # 内容垂直居中
-    ft <- line_spacing(ft, space = 1.35, part = "body")
-    ft <- padding(ft, padding.top = 8, padding.bottom = 8, padding.left = 14, padding.right = 12, part = "body")
+    ft <- line_spacing(ft, space = 1.30, part = "body")
+    ft <- padding(ft, padding.top = 10, padding.bottom = 10,
+                  padding.left = 15, padding.right = 13, part = "body")
     ft <- width(ft, j = 1, width = cw); ft <- height(ft, i = 1, height = card_h, part = "body")
     ft <- hrule(ft, rule = "exact", part = "body")
     ppt <- ph_with(ppt, ft, location = ph_location(left = x, top = y, width = cw, height = card_h))
@@ -489,17 +552,55 @@ sysu_add_cards <- function(ppt, title, cards, cols = NULL, intro = NULL, card_h 
   .add_pagenum(ppt)
 }
 
-#' 代码 / 示例页（等宽字体 + 浅底色框，可选上方说明文字）
+# 显式 flextable 代码容器；不依赖 PowerPoint 对段落底色的非一致渲染。
+.code_ft <- function(code_lines, width, height) {
+  code_fp <- fp_text(font.size = SYSU$sz$code, color = SYSU$col$text,
+                     font.family = SYSU$mono, hansi.family = SYSU$mono,
+                     eastasia.family = SYSU$mono, cs.family = SYSU$mono)
+  ft <- flextable(data.frame(code = ""))
+  ft <- delete_part(ft, "header")
+  ft <- border_remove(ft)
+  ft <- bg(ft, bg = SYSU$col$box, part = "body")
+  ft <- border(ft,
+               border.top = fp_border(color = .CARD_BD, width = 0.75),
+               border.bottom = fp_border(color = .CARD_BD, width = 0.75),
+               border.right = fp_border(color = .CARD_BD, width = 0.75),
+               border.left = fp_border(color = .CARD_BAR, width = 3),
+               part = "body")
+  ft <- mk_par(ft, i = 1, j = 1, value = as_paragraph(
+    as_chunk(paste(code_lines, collapse = "\n"), props = code_fp)))
+  ft <- width(ft, j = 1, width = width)
+  ft <- height(ft, i = 1, height = height, part = "body")
+  ft <- hrule(ft, rule = "exact", part = "body")
+  ft <- valign(ft, valign = "center", part = "body")
+  ft <- padding(ft, padding.top = 12, padding.bottom = 12,
+                padding.left = 16, padding.right = 12, part = "body")
+  ft
+}
+
+#' 代码 / 示例页（等宽字体 + 显式浅底色框，可选上方说明文字）
 sysu_add_code <- function(ppt, title, code_lines, intro = NULL) {
+  if (!length(code_lines)) stop("code_lines 不能为空")
   ppt <- .new(ppt, title)
-  top <- 1.58
+  max_chars <- max(nchar(code_lines, type = "width"), na.rm = TRUE)
+  code_w <- min(11.60, max(7.20, 0.115 * max_chars + 0.90))
+  code_left <- (13.333 - code_w) / 2
+  code_h <- min(max(1.4, 0.28 * length(code_lines) + 0.55), 3.8)
   if (!is.null(intro)) {
-    ppt <- ph_with(ppt, intro, location = ph_location(left = 0.85, top = top, width = 11.60, height = 1.4))
-    top <- 3.0
+    intro_h <- 0.85
+    gap_h <- 0.29
+    group_h <- intro_h + gap_h + code_h
+    group_top <- 1.58 + max(5.37 - group_h, 0) * 0.42
+    ppt <- ph_with(ppt, intro,
+                   location = ph_location(left = 0.85, top = group_top,
+                                          width = 11.60, height = intro_h))
+    top <- group_top + intro_h + gap_h
+  } else {
+    top <- 1.58 + (5.20 - code_h) / 2
   }
-  body <- do.call(block_list, lapply(code_lines, function(l)
-    fpar(cd(l), fp_p = fp_par(shading.color = SYSU$col$box, padding = 2, line_spacing = 1.1))))
-  ppt <- ph_with(ppt, body, location = ph_location(left = 0.85, top = top, width = 11.60, height = 7.0 - top))
+  ppt <- ph_with(ppt, .code_ft(code_lines, code_w, code_h),
+                 location = ph_location(left = code_left, top = top,
+                                        width = code_w, height = code_h))
   .add_pagenum(ppt)
 }
 
