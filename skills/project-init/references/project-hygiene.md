@@ -24,7 +24,7 @@
 
 ## 3. `02_code/` 契约
 
-- 分析语言优先沿用既有主流程或用户明确选择，并在项目 `CLAUDE.md` 记录；新项目未指定时默认 R，Python 仅作为明确选择的补充，不为统一风格跨 R/Python 重写。
+- 分析语言优先沿用既有主流程或用户明确选择，并在项目 `CLAUDE.md` 记录；新项目未指定时直接使用 R，标准 R 项目不要求 Python 环境。Python 仅作为用户明确选择或既有 Python 主流程的补充；R 环境或依赖缺失时不自动换用 Python，也不为统一风格跨 R/Python 重写。
 - 编号脚本使用 `01..` 到 `0N..` 连续序列，不留 `test.R|py`、`temp.R|py`、`final.R|py` 等无编号文件。
 - `02_code/` 只保留从原始数据复现到最终结果的主流程阶段。编号脚本不超过 10 个；阶段内子分析用参数切分。
 - `config.R|py`、`conventions.R|py`、`lib/`、`vendored/` 与已有的 `run_pipeline` 不计入编号脚本数。

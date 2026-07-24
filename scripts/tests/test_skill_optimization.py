@@ -185,7 +185,10 @@ class SkillOptimizationTests(unittest.TestCase):
             "不使用助手口吻",
             "游戏化隐喻",
             "英文缩写首次出现给出全称",
-            "未指定且无既有语言合同时默认 R",
+            "流行病学与生物统计分析以 R 为主要语言",
+            "未指定且无既有语言合同时直接使用 R",
+            "Python 不是标准研究工作流的前置条件",
+            "R 环境或依赖缺失时按第 3 节报告，不自动改用 Python",
             "不要求把可工作的 R 主流程迁移到 Python",
             "回复与交付说明简洁，不堆套话",
             "使用临床研究、流行病学与生物统计的准确术语",
@@ -199,7 +202,19 @@ class SkillOptimizationTests(unittest.TestCase):
         project_init = (ROOT / "skills/project-init/SKILL.md").read_text(
             encoding="utf-8"
         )
-        self.assertIn("分析语言：R（默认）或 Python", project_init)
+        self.assertIn("R（默认；未指定时直接采用）", project_init)
+        self.assertIn("Python（仅按用户明确选择）", project_init)
+        self.assertIn("直接按 R 初始化，不单独追问 Python", project_init)
+
+        r_skill = (ROOT / "skills/r-biostats/SKILL.md").read_text(encoding="utf-8")
+        python_skill = (ROOT / "skills/python-biostats/SKILL.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("用户未指定语言且无既有语言合同时也使用", r_skill)
+        self.assertIn("R 环境或依赖缺失时报告影响和准备方式", r_skill)
+        self.assertIn("仅用于用户明确要求 Python", python_skill)
+        self.assertIn("未指定语言的普通统计分析", python_skill)
+        self.assertIn("不因 R 环境或依赖缺失改用 Python", python_skill)
 
     def test_shared_result_schema_keeps_interpretation_recovery_workflow(self) -> None:
         schema = (
