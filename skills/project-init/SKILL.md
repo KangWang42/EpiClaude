@@ -1,7 +1,7 @@
 ---
 name: project-init
 description: |
-  初始化标准卫生统计研究或咨询项目，生成 R 或 Python 七层目录、PROTOCOL、SAP、结果单源、registry 与可选 Git 配置。仅在用户明确要求创建项目或把空工作区建成正式项目时使用；简单作业、快速核验和已有项目分析不触发。上游为 biostat-principles；咨询项目完成分析后再用 consulting-delivery。
+  初始化标准卫生统计研究或咨询项目，默认生成 R 七层目录，也可按用户明确选择生成 Python 目录，并创建 PROTOCOL、SAP、结果单源、registry 与可选 Git 配置。仅在用户明确要求创建项目或把空工作区建成正式项目时使用；简单作业、快速核验和已有项目分析不触发。上游为 biostat-principles；咨询项目完成分析后再用 consulting-delivery。
 ---
 
 # 项目初始化 skill
@@ -27,13 +27,14 @@ description: |
 3. 模式：
    [A] 研究模式（自己做研究 / 投稿用）
    [B] 咨询模式（给客户做交付用，自动装配 consulting-delivery 骨架）
-4. 分析语言：R（默认）或 Python
+4. 分析语言：R（默认；未指定时直接采用）或 Python（仅按用户明确选择）
 5. 存放根路径（默认当前工作目录）：
 6. 是否显式启用 Git（默认 no；仅在用户选择 yes 且 Git 已可用时初始化）：
 ```
 
 **项目名违反 snake_case** → 自动建议规范名并请用户确认（不要硬改）。
 **同名目录已存在** → 停下来问用户覆盖、改名、还是追加。
+**用户未指定分析语言** → 直接按 R 初始化，不单独追问 Python；不得因本机存在 Python、某个 Python 库更方便或 R 依赖缺失而改变语言。
 
 ---
 

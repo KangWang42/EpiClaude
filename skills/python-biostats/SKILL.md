@@ -1,11 +1,11 @@
 ---
 name: python-biostats
-description: Python 流行病学与生物统计分析执行层，用于 Python 数据清洗、描述统计、回归、生存分析、预测验证、统计表图、代码调试和结果复现。开工先对齐 biostat-principles；统计图配合 publication-figures，客户外发再用 consulting-delivery。不用于 R 分析、研究设计定稿、论文写作或仅操作 xlsx 文件。
+description: Python 流行病学与生物统计分析的可选执行层，仅用于用户明确要求 Python，或既有项目已经以 Python 为主流程时的数据清洗、描述统计、回归、生存分析、预测验证、统计表图、代码调试和结果复现。开工先遵循 biostat-principles；统计图配合 publication-figures，客户外发再用 consulting-delivery。未指定语言的普通统计分析、R 环境或依赖缺失、研究设计定稿、论文写作或仅操作 xlsx 文件不触发。
 ---
 
 # Python 流行病学与生物统计执行
 
-把已确认的研究问题和分析计划转成可运行、可核验、可追溯的 Python 分析。服从现有项目风格，不为使用 Python 而重写可工作的 R 主流程。
+把已确认的研究问题和分析计划转成可运行、可核验、可追溯的 Python 分析。仅在用户明确选择 Python 或既有 Python 项目中执行；服从现有项目风格，不因 R 环境或依赖缺失改用 Python，也不为使用 Python 而重写可工作的 R 主流程。
 
 ## 1. 建立执行合同
 

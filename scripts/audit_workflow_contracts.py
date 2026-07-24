@@ -276,8 +276,10 @@ def main() -> int:
             "调用条件、检查要求、停止条件和隔离执行",
             "平台术语没有稳定中文译名时保留原词并说明功能",
             "不作字面翻译",
-            "未指定且无既有语言合同时默认 R",
-            "不要求把可工作的 R 主流程迁移到 Python",
+            "流行病学与生物统计分析以 R 为主要语言",
+            "未指定且无既有语言合同时直接使用 R",
+            "Python 不是标准研究工作流的前置条件",
+            "R 环境或依赖缺失时按第 3 节报告，不自动改用 Python",
         ),
         "AGENTS.md": (
             "Treat skill improvement as regression-safe optimization",
@@ -321,7 +323,8 @@ def main() -> int:
             "registry 有序清单是编号唯一来源",
             "MANIFEST.md",
             "BACKLOG.md",
-            "新项目未指定时默认 R",
+            "新项目未指定时直接使用 R",
+            "标准 R 项目不要求 Python 环境",
         ),
         "skills/biostat-principles/references/result-summary-schema.md": (
             "stale_interps(path)",
@@ -387,6 +390,15 @@ def main() -> int:
             "不用询问代替排错",
             "依赖或运行环境缺失时说明检测结果",
             "不代为安装",
+            "用户未指定语言且无既有语言合同时也使用",
+            "R 环境或依赖缺失时报告影响和准备方式",
+            "不自动改用 Python",
+        ),
+        "skills/python-biostats/SKILL.md": (
+            "仅用于用户明确要求 Python",
+            "既有项目已经以 Python 为主流程",
+            "未指定语言的普通统计分析",
+            "不因 R 环境或依赖缺失改用 Python",
         ),
         "skills/biostat-principles/SKILL.md": (
             "09_backup/EXPERIMENTS.md",
@@ -468,6 +480,7 @@ def main() -> int:
             "readme_real_artifact_screenshot",
             "template_adaptive_presentation",
             "maintain_epiagentkit_contracts",
+            "r_dependency_missing_no_language_switch",
         ),
         "skills/project-init/SKILL.md": (
             "已有项目分析不触发",

@@ -145,6 +145,31 @@ class WorkflowRoutingTests(unittest.TestCase):
         ):
             self.assertIn(fragment, principles)
 
+    def test_r_is_primary_and_python_requires_an_explicit_contract(self) -> None:
+        cases = {
+            case["id"]: case
+            for case in json.loads(
+                (ROOT / "scripts/skill_routing_cases.json").read_text(
+                    encoding="utf-8"
+                )
+            )["cases"]
+        }
+        for case_id in (
+            "existing_project_analysis",
+            "analysis_with_plot",
+            "r_dependency_missing_no_language_switch",
+        ):
+            self.assertEqual(cases[case_id]["primary"], "r-biostats")
+            self.assertIn("python-biostats", cases[case_id]["excluded"])
+        self.assertEqual(
+            cases["existing_project_python_survival"]["primary"],
+            "python-biostats",
+        )
+        self.assertIn(
+            "r-biostats",
+            cases["existing_project_python_survival"]["excluded"],
+        )
+
     def test_skill_validator_enforces_metadata_and_context_budget(self) -> None:
         validator = ROOT / "skills/skill-creator/scripts/quick_validate.py"
         cases = {

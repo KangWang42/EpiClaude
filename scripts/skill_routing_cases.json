@@ -20,14 +20,21 @@
       "prompt": "在现有项目中开始 Cox 回归分析",
       "primary": "r-biostats",
       "companions": ["biostat-principles"],
-      "excluded": ["project-init", "publication-figures", "epiagentkit-maintenance"]
+      "excluded": ["project-init", "python-biostats", "publication-figures", "epiagentkit-maintenance"]
     },
     {
       "id": "analysis_with_plot",
       "prompt": "在现有项目中完成回归并生成森林图",
       "primary": "r-biostats",
       "companions": ["biostat-principles", "publication-figures"],
-      "excluded": ["project-init"]
+      "excluded": ["project-init", "python-biostats"]
+    },
+    {
+      "id": "r_dependency_missing_no_language_switch",
+      "prompt": "现有 R 队列项目缺少一个分析包，请报告影响和需要准备的依赖，继续保留 R 主流程，不要改用 Python",
+      "primary": "r-biostats",
+      "companions": ["biostat-principles"],
+      "excluded": ["python-biostats", "project-init"]
     },
     {
       "id": "paper_from_scratch_word",

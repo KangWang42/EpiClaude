@@ -28,7 +28,7 @@ Shared research workflow kit for Claude Code and Codex, built for epidemiology a
 
 只需要描述当前任务，EpiAgentKit 会按任务类型加载必要 skill，并将结果落到可检查的文件、代码或交付物中。
 
-统计分析以 R 为默认主路径；Python 是显式选择或既有 Python 项目的可选补充，不要求迁移可工作的 R 主流程。
+统计分析以 R 为主要和默认路径，标准研究工作流不要求用户具备 Python 环境。Python 仅作为明确选择或既有 Python 项目的可选补充；R 环境或依赖缺失时先报告影响，不自动改用 Python，也不迁移可工作的 R 主流程。
 
 | 研究任务 | 它会做什么 | 典型产物 |
 | --- | --- | --- |
@@ -36,7 +36,7 @@ Shared research workflow kit for Claude Code and Codex, built for epidemiology a
 | 核验文献与方法依据 | 核对题名、作者、DOI/PMID、来源身份和撤稿状态，必要时组织正式证据检索 | 核验记录、证据矩阵、方法选择依据 |
 | 完善研究设计与 SAP | 把研究想法转成 PICO/PECO、estimand、终点、时间零点、偏倚控制、样本量或精度依据及预设分析 | 可审查的 PROTOCOL、SAP、未决事项与设计备忘录 |
 | 完成 R 统计分析 | 执行数据清洗、描述统计、回归、生存分析、中介分析与 Meta 分析，并按 `PLAN-CODE-RUN-VERIFY-DOC` 闭环 | 可复现 R 脚本、结果对象、Excel 表格与方法记录 |
-| 完成 Python 统计分析 | 执行数据清洗、描述统计、回归、生存分析、预测验证与异常闭环，并与 R 共用结果单源 | 可复现 Python 脚本、结果对象、表图与方法记录 |
+| 完成明确选择的 Python 统计分析 | 在用户指定 Python 或既有 Python 项目中执行数据清洗、描述统计、回归、生存分析、预测验证与异常核查，并与 R 共用结果单源 | 可复现 Python 脚本、结果对象、表图与方法记录 |
 | 制作发表级统计图 | 按真实数据和最终物理尺寸生成森林图、生存曲线、ROC、热图、回归诊断等结果图 | PDF、PNG 或 SVG 图件及对应出图代码 |
 | 生成科研非统计视觉 | 为论文、PPT、标书、报告、README 和技术文档生成流程、路线、框架、机制与图形摘要，并区分内容图、真实截图和氛围图 | 经来源、结构、文字和最终载体复核的完整图件 |
 | 写论文与投稿材料 | 基于项目已有结果起草中英文论文部件、学位论文、Cover Letter、Highlights 和审稿回复，并执行证据约束审校 | Markdown 或 Word 稿件、投稿材料与自检记录 |
@@ -183,7 +183,7 @@ Codex 默认把自定义 skills 安装到官方目录 `~/.agents/skills/`。`--c
 | 项目审查 | `epi-project-audit` |
 | 文件与维护 | `docx` · `pdf` · `pptx` · `xlsx` · `epiagentkit-maintenance` · `skill-creator` · `git-commit-helper` |
 
-组合遵循“最小内容主流程 → 必要的视觉或文件操作 → 终审”。研究设计使用 `biostat-principles → epi-study-design`；R 与 Python 分析分别转 `r-biostats` 或 `python-biostats`，实际出统计图时再加 `publication-figures`；论文从零生成使用 `academic-publishing → academic-humanizer`，需要 Word 时再加 `docx`；非统计视觉统一使用 `research-visuals → imagegen`，并仅按其明确条件回退到 `svg-diagrams`。
+组合遵循“最小内容主流程 → 必要的视觉或文件操作 → 终审”。研究设计使用 `biostat-principles → epi-study-design`；统计分析默认转 `r-biostats`，仅在用户明确选择或既有 Python 项目中转 `python-biostats`，实际出统计图时再加 `publication-figures`；论文从零生成使用 `academic-publishing → academic-humanizer`，需要 Word 时再加 `docx`；非统计视觉统一使用 `research-visuals → imagegen`，并仅按其明确条件回退到 `svg-diagrams`。
 
 ## 为什么不只是一个提示词仓库
 

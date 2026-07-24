@@ -1,7 +1,7 @@
 ---
 name: r-biostats
 description: |
-  R 流行病学与生物统计执行层，用于 R 数据清洗、描述统计、回归、生存、中介、Meta 分析、统计表图和代码调试。开工先对齐 biostat-principles；统计图配合 publication-figures，客户外发再用 consulting-delivery。不用于 Python 分析、研究设计定稿或论文写作。
+  R 流行病学与生物统计的主要执行层，用于 R 数据清洗、描述统计、回归、生存、中介、Meta 分析、统计表图和代码调试；用户未指定语言且无既有语言合同时也使用。开工先遵循 biostat-principles；统计图配合 publication-figures，客户外发再用 consulting-delivery。不用于已明确采用 Python 的分析、研究设计定稿或论文写作。
 ---
 
 # R 流行病学与生物统计执行 skill
@@ -109,7 +109,7 @@ description: |
 
 ### 必须
 
-- **语言边界**：用户、现有主流程或项目规则指定 R 时使用 `.R`；指定 Python 时转 `python-biostats`。不为统一风格跨语言重写。
+- **语言边界**：用户、现有主流程或项目规则指定 R 时使用 `.R`；未指定且无既有语言合同时直接使用 R；只有明确指定 Python 或既有 Python 主流程时才转 `python-biostats`。R 环境或依赖缺失时报告影响和准备方式，不自动改用 Python，也不为统一风格跨语言重写。
 - **代码风格遵 [references/code-style.md](references/code-style.md)**（软约束，服从工作流/红线）：依赖直接逐行 `library()`；顺序式 R 分析不按 Python 习惯把每一步封成函数；管道尽量连续，中间对象少且语义清楚；批处理先定义控制向量，再按返回值或副作用选择 `map*()` / `walk*()`；RUN / VERIFY 必做，但不把硬编码核验块和调试展示默认塞进交付脚本。
 - R 脚本顶部：声明实际依赖并说明目的、输入和输出；仅在随机抽样、模拟、重采样、拆分或随机算法中设置并记录 seed
 - 命名：文件 `NN_描述.R`、变量 `snake_case`；函数只在复用、参数化批处理、稳定工具或复杂算法边界确有必要时抽取，并使用 `snake_case`

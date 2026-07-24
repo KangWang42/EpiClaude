@@ -8,7 +8,8 @@
 - Git 只在命令可用时使用。已有工作区只有当前目录为仓库时才检查状态或收尾，否则跳过；不安装 Git，也不隐式初始化仓库。只有用户在 `project-init` 中明确启用 Git 时，才可对新项目执行 `git init`。
 - 先判定任务形态。用户明确说简单作业、单次处理、快速核验或只要一个小结果，且当前工作区不是既有标准研究项目时，使用“轻量任务”模式：只调用必要 skill、读写必要文件并做与风险相称的验证；不得自动初始化项目或补建七层目录、registry、`results.yaml`、`BACKLOG.md`、`DECISIONS.md`、`SESSION_LOG.md`。
 - 用户明确要求新建/初始化研究项目、投稿或咨询交付，或当前工作区已有项目级 `CLAUDE.md`、`01_data/`、`02_code/` 等标准骨架时，使用“正式项目”模式并遵守完整项目契约。触发领域 skill 不等于自动升级为正式项目；边界不清且会显著改变文件布局时先问用户。
-- 分析语言优先沿用现有项目主流程；未指定且无既有语言合同时默认 R。只有用户明确选择 Python 或既有项目已使用 Python 时才调用 `python-biostats`，不要求把可工作的 R 主流程迁移到 Python。
+- 流行病学与生物统计分析以 R 为主要语言。分析语言优先沿用现有项目主流程；未指定且无既有语言合同时直接使用 R，不为此追问是否改用 Python。
+- Python 不是标准研究工作流的前置条件。只有用户明确选择 Python 或既有项目已使用 Python 时才调用 `python-biostats`；R 环境或依赖缺失时按第 3 节报告，不自动改用 Python，也不要求把可工作的 R 主流程迁移到 Python。
 - 分组、终点、纳排、主分析方法或多个合理口径并存时，先向用户澄清，不擅自选择。
 - 不猜 API、版本、包名、数据、研究发现或文献。先读代码、官方文档或可核验来源再断言。
 - Codex 调用内置图像工具时遵守 `research-visuals` 的会话隔离要求：生成、携图编辑和视觉查看进入一次性隔离子代理，主任务只保留纯文本与本地文件路径，不接收或回放 data URL、base64 或内联图片。当前策略不允许子代理时改用独立图片任务；不得把 compact、修改会话 JSONL 或静默切换 CLI/API 当作修复。
@@ -20,8 +21,8 @@
 | 新建、初始化项目或空工作区建骨架 | `project-init` | 咨询项目完成分析后再用 `consulting-delivery` |
 | 文献依据、最新证据、方法或指标选择 | `evidence-research` | 核验后再进入分析或写作 |
 | 研究问题、设计、estimand、PROTOCOL 或 SAP | `biostat-principles` → `epi-study-design` | 需要方法或指标依据时加 `evidence-research` |
-| R 清洗、描述、回归、生存及其他统计分析 | `biostat-principles` → `r-biostats` | 实际出统计图时加 `publication-figures` |
-| Python 清洗、描述、回归、生存及其他统计分析 | `biostat-principles` → `python-biostats` | 实际出统计图时加 `publication-figures` |
+| R 清洗、描述、回归、生存及其他统计分析 | `biostat-principles` → `r-biostats` | 未指定语言时也走此路径；实际出统计图时加 `publication-figures` |
+| Python 清洗、描述、回归、生存及其他统计分析 | `biostat-principles` → `python-biostats` | 仅限明确选择或既有 Python 项目；实际出统计图时加 `publication-figures` |
 | 统计图、数据图及含坐标或尺度映射的结果图 | `biostat-principles` → `publication-figures` | 不用于流程、机制或框架图 |
 | 非统计视觉、流程、框架、机制、路线、架构或图形摘要 | `research-visuals` → `imagegen` | 统计图转 `publication-figures`；仅按该 skill 的回退条件转 `svg-diagrams` |
 | 从零生成论文、论文部件、投稿材料或结构性重写 | `biostat-principles` → `academic-publishing` | `academic-humanizer` 终审；实际操作 Word 时加 `docx` |
